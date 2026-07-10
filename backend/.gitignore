@@ -1,0 +1,96 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+.env
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Logs ###
+logs/
+*.log
+log/
+*.log.*
+spring.log
+
+### Security & LGPD - Sensitive Files ###
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.cert
+*.crt
+secrets/
+credentials/
+*.db
+*.sqlite
+*.sqlite3
+
+### Database Backups & Exports ###
+*.sql
+!src/main/resources/db/migration/*.sql
+*.dump
+*.backup
+dump/
+backups/
+
+### Test Coverage ###
+.coverage
+coverage/
+jacoco.exec
+.jacoco
+
+### OS Files ###
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+.projectile
+
+### Docker ###
+docker/volumes/
+docker/data/
+
+### Temporary Files ###
+*.tmp
+*.temp
+*.bak
+*.cache
