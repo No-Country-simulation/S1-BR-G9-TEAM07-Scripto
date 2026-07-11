@@ -15,7 +15,7 @@ Projeto base com:
 Suba somente o MySQL:
 
 ```bash
-docker compose up -d mysql
+docker compose up -d
 ```
 
 Depois execute o Spring Boot pela IDE.
