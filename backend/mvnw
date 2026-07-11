@@ -118,10 +118,10 @@ done <"$scriptDir/.mvn/wrapper/maven-wrapper.properties"
 [ -n "${distributionUrl-}" ] || die "cannot read distributionUrl property in $scriptDir/.mvn/wrapper/maven-wrapper.properties"
 
 case "${distributionUrl##*/}" in
-maven-mvnd-*bin.*)
+maven-mvnd-bin.)
   MVN_CMD=mvnd.sh _MVNW_REPO_PATTERN=/maven/mvnd/
   case "${PROCESSOR_ARCHITECTURE-}${PROCESSOR_ARCHITEW6432-}:$(uname -a)" in
-  *AMD64:CYGWIN* | *AMD64:MINGW*) distributionPlatform=windows-amd64 ;;
+  AMD64:CYGWIN | AMD64:MINGW) distributionPlatform=windows-amd64 ;;
   :Darwin*x86_64) distributionPlatform=darwin-amd64 ;;
   :Darwin*arm64) distributionPlatform=darwin-aarch64 ;;
   :Linux*x86_64*) distributionPlatform=linux-amd64 ;;
@@ -156,8 +156,8 @@ if [ -d "$MAVEN_HOME" ]; then
 fi
 
 case "${distributionUrl-}" in
-*?-bin.zip | *?maven-mvnd-?*-?*.zip) ;;
-*) die "distributionUrl is not valid, must match *-bin.zip or maven-mvnd-*.zip, but found '${distributionUrl-}'" ;;
+?-bin.zip | *?maven-mvnd-?-?*.zip) ;;
+) die "distributionUrl is not valid, must match *-bin.zip or maven-mvnd-.zip, but found '${distributionUrl-}'" ;;
 esac
 
 # prepare tmp dir
@@ -193,10 +193,10 @@ esac
 
 if [ -z "${MVNW_USERNAME-}" ] && command -v wget >/dev/null; then
   verbose "Found wget ... using wget"
-  wget ${__MVNW_QUIET_WGET:+"$__MVNW_QUIET_WGET"} "$distributionUrl" -O "$TMP_DOWNLOAD_DIR/$distributionUrlName" || die "wget: Failed to fetch $distributionUrl"
+  wget ${_MVNW_QUIET_WGET:+"$_MVNW_QUIET_WGET"} "$distributionUrl" -O "$TMP_DOWNLOAD_DIR/$distributionUrlName" || die "wget: Failed to fetch $distributionUrl"
 elif [ -z "${MVNW_USERNAME-}" ] && command -v curl >/dev/null; then
   verbose "Found curl ... using curl"
-  curl ${__MVNW_QUIET_CURL:+"$__MVNW_QUIET_CURL"} -f -L -o "$TMP_DOWNLOAD_DIR/$distributionUrlName" "$distributionUrl" || die "curl: Failed to fetch $distributionUrl"
+  curl ${_MVNW_QUIET_CURL:+"$_MVNW_QUIET_CURL"} -f -L -o "$TMP_DOWNLOAD_DIR/$distributionUrlName" "$distributionUrl" || die "curl: Failed to fetch $distributionUrl"
 elif set_java_home; then
   verbose "Falling back to use Java to download"
   javaSource="$TMP_DOWNLOAD_DIR/Downloader.java"
@@ -251,9 +251,9 @@ fi
 
 # unzip and move
 if command -v unzip >/dev/null; then
-  unzip ${__MVNW_QUIET_UNZIP:+"$__MVNW_QUIET_UNZIP"} "$TMP_DOWNLOAD_DIR/$distributionUrlName" -d "$TMP_DOWNLOAD_DIR" || die "failed to unzip"
+  unzip ${_MVNW_QUIET_UNZIP:+"$_MVNW_QUIET_UNZIP"} "$TMP_DOWNLOAD_DIR/$distributionUrlName" -d "$TMP_DOWNLOAD_DIR" || die "failed to unzip"
 else
-  tar xzf${__MVNW_QUIET_TAR:+"$__MVNW_QUIET_TAR"} "$TMP_DOWNLOAD_DIR/$distributionUrlName" -C "$TMP_DOWNLOAD_DIR" || die "failed to untar"
+  tar xzf${_MVNW_QUIET_TAR:+"$_MVNW_QUIET_TAR"} "$TMP_DOWNLOAD_DIR/$distributionUrlName" -C "$TMP_DOWNLOAD_DIR" || die "failed to untar"
 fi
 
 # Find the actual extracted directory name (handles snapshots where filename != directory name)
