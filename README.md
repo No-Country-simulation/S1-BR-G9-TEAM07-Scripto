@@ -12,6 +12,12 @@ Projeto base com:
 
 ## Desenvolvimento recomendado
 
+Certifique-se de estar no diretório correto:
+
+```bash
+backend
+```
+
 Suba somente o MySQL:
 
 ```bash
@@ -23,7 +29,7 @@ Depois execute o Spring Boot pela IDE.
 A aplicação acessará:
 
 ```text
-jdbc:mysql://localhost:3306/scripto_db
+jdbc:mysql://localhost:3307/scripto_db
 ```
 
 ## MySQL e phpMyAdmin
