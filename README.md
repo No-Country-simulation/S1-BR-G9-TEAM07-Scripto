@@ -15,16 +15,20 @@ Projeto base com:
 Certifique-se de estar no diretório correto:
 
 ```bash
-backend
+cd backend
 ```
 
-Suba somente o MySQL:
+Suba seu docker com MySQL:
 
 ```bash
 docker compose up -d
 ```
 
 Depois execute o Spring Boot pela IDE.
+
+```bash
+./mvnw -DskipTests spring-boot:run
+```
 
 A aplicação acessará:
 
@@ -34,32 +38,10 @@ jdbc:mysql://localhost:3307/scripto_db
 
 ## MySQL e phpMyAdmin
 
-```bash
-docker compose --profile tools up -d
-```
-
 Acesse o phpMyAdmin em:
 
 ```text
 http://localhost:8081
-```
-
-Servidor no phpMyAdmin:
-
-```text
-mysql
-```
-
-## Aplicação completa no Docker
-
-```bash
-docker compose --profile app up --build -d
-```
-
-Para subir aplicação e phpMyAdmin juntos:
-
-```bash
-docker compose --profile app --profile tools up --build -d
 ```
 
 ## Encerrar os contêineres
@@ -78,20 +60,9 @@ docker compose down --volumes
 
 ## Migrations
 
-Adicione as migrations do Flyway em:
-
-```text
-src/main/resources/db/migration
-```
-
-Exemplos de nomes:
-
-```text
-V1__create_tables.sql
-V2__insert_mock_data.sql
-```
+O projeto já conta com um banco de dados e uma migration de inserção mock
 
 ## Segurança
 
 O arquivo `.env` é apenas para desenvolvimento local e está ignorado pelo Git.
-Não use as senhas de desenvolvimento em produção.
+Não use as senhas de desenvolvimento em produção, por mais que o `.gitignore` esteja configurado, certifique-se de não exibir nenhum dado sensível.
