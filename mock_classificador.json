@@ -1,0 +1,13 @@
+{
+    "categoria": "Documentacao",
+    "probabilidade": 0.92,
+    "tags": [
+        "spring",
+        "boot",
+        "api",
+        "rest",
+        "maven"
+    ],
+    "resumo": "Este projeto utiliza Spring Boot para criar uma API REST. O sistema utiliza Maven para gerenciamento de dependências e autenticação...",
+    "nivel": "INTERMEDIÁRIO"
+}
