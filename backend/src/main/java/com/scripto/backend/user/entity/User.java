@@ -1,7 +1,9 @@
 package com.scripto.backend.user.entity;
 
 import com.scripto.backend.document.entity.Document;
+import com.scripto.backend.dto.UserUpdateDTO;
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -21,7 +23,7 @@ public class User {
     @Column(name = "full_name", length = 150, nullable = false)
     private String fullName;
 
-    @Column(name = "cpf", length = 11, nullable = false, unique = true)
+    @Column(name = "cpf", length = 11, nullable = false, unique = true, columnDefinition = "CHAR(11)")
     private String cpf;
 
     @Column(length = 255, nullable = false, unique = true)
@@ -50,4 +52,13 @@ public class User {
 
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
+
+
+    public void update(@Valid UserUpdateDTO userUpdateDTO){
+        this.fullName = userUpdateDTO.fullName();
+        this.email = userUpdateDTO.email();
+        this.passwordHash = userUpdateDTO.passwordHash();
+    }
+
+
 }
