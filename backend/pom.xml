@@ -30,6 +30,7 @@
 		<java.version>21</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -51,7 +52,6 @@
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-mysql</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -91,15 +91,19 @@
 			<version>1.18.42</version>
 			<scope>compile</scope>
 		</dependency>
-		<!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools -->
+		<!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<version>3.5.16</version>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!-- Source: https://mvnrepository.com/artifact/com.auth0/java-jwt -->
+		<dependency>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+			<version>4.4.0</version>
 			<scope>compile</scope>
 		</dependency>
     </dependencies>
-
 
 	<build>
 		<plugins>

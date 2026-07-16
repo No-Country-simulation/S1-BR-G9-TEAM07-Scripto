@@ -19,7 +19,6 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity getAllUsers(){
-
         var users = userService.findAllUsers();
         return ResponseEntity.ok(users);
     }
