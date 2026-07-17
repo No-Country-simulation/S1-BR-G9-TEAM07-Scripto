@@ -1,4 +1,4 @@
-package com.scripto.backend.dto;
+package com.scripto.backend.user.dto;
 
 import com.scripto.backend.user.entity.User;
 

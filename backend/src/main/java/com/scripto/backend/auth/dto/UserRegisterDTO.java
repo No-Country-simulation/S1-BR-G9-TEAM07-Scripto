@@ -12,7 +12,7 @@ public record UserRegisterDTO(
 
         @NotBlank
         @Size(min = 3, max = 150)
-        String fullname,
+        String fullName,
 
         @NotBlank
         @Email
