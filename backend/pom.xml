@@ -115,7 +115,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/5.2.0/mockito-core-5.2.0.jar</argLine>
+					<argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/5.17.0/mockito-core-5.17.0.jar</argLine>
 				</configuration>
 			</plugin>
 		</plugins>
