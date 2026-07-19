@@ -7,7 +7,10 @@ import jakarta.validation.constraints.Size;
 
 public record UserRegisterDTO(
         @NotBlank
-        @Pattern(regexp = "\\d{11}", message = "\n" + "The CPF must contain exactly 11 numeric digits.")
+        @Pattern(
+                regexp = "^\\d{11}$|^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$",
+                message = "The CPF must contain exactly 11 numeric digits."
+        )
         String cpf,
 
         @NotBlank
@@ -26,4 +29,18 @@ public record UserRegisterDTO(
                 message = "The password must contain 1 number, 1 lowercase letter, 1 uppercase letter, and 1 special character.")
         String password
 ){
+
+        public UserRegisterDTO {
+                if(cpf != null) {
+                        cpf = cpf.replaceAll("\\D", "");
+                }
+
+                if(fullName != null){
+                        fullName = fullName.trim();
+                }
+
+                if(email != null){
+                        email = email.trim().toLowerCase();
+                }
+        }
 }
