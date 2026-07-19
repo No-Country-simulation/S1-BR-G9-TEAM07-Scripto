@@ -7,6 +7,7 @@ import com.scripto.backend.user.dto.UserUpdateDTO;
 import com.scripto.backend.user.dto.UserViewDTO;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -73,5 +75,14 @@ public class UserService {
         var authenticationToken = new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password());
         var authentication = authenticationManager.authenticate(authenticationToken);
         return jwtService.generateToken((User) authentication.getPrincipal());
+    }
+    @Transactional
+    public void softDeleteAccount(Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
+
+        user.setActive(false);
+        user.setDeletedAt(LocalDateTime.now());
+        userRepository.save(user);
     }
 }
