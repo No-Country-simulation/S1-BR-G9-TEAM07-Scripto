@@ -61,7 +61,8 @@ public class UserService {
     @Transactional
     public void updateUserById(Long id, UserUpdateDTO userUpdateDTO) {
         var user = findUserEntityById(id);
-        user.update(userUpdateDTO);
+        var hash = passwordEncoder.encode(userUpdateDTO.password());
+        user.update(userUpdateDTO, hash);
         userRepository.save(user);
     }
 

@@ -68,10 +68,10 @@ public class User implements UserDetails {
         this.passwordHash = encryptedPassword;
     }
 
-    public void update(@Valid UserUpdateDTO userUpdateDTO){
+    public void update(@Valid UserUpdateDTO userUpdateDTO, String encryptedPassword){
         this.fullName = userUpdateDTO.fullName();
         this.email = userUpdateDTO.email();
-        this.passwordHash = userUpdateDTO.passwordHash();
+        this.passwordHash = encryptedPassword;
     }
 
     @Override

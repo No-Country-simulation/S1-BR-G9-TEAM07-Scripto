@@ -9,7 +9,7 @@ public record UserRegisterDTO(
         @NotBlank
         @Pattern(
                 regexp = "^\\d{11}$|^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$",
-                message = "The CPF must contain exactly 11 numeric digits."
+                message = "O CPF deve conter exatamente 11 dígitos!."
         )
         String cpf,
 
@@ -18,7 +18,7 @@ public record UserRegisterDTO(
         String fullName,
 
         @NotBlank
-        @Email
+        @Email(message = "E-mail inválido!")
         @Size(max = 255)
         String email,
 
@@ -26,7 +26,8 @@ public record UserRegisterDTO(
         @Size(min = 8, max = 15)
         @Pattern(
                 regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?\":{}|<>_\\-]).*$",
-                message = "The password must contain 1 number, 1 lowercase letter, 1 uppercase letter, and 1 special character.")
+                message = "A senha deve conter no mínimo um número, um caractere minúsculo, um caractere maiúsculo e um caractere especial!")
+
         String password
 ){
 

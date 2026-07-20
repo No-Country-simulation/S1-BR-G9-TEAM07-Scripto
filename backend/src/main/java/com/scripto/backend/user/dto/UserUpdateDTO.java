@@ -12,5 +12,5 @@ public record UserUpdateDTO(
         String email,
 
         @NotBlank
-        String passwordHash) {
+        String password) {
 }
