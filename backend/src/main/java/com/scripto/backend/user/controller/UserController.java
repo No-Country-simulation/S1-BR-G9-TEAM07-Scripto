@@ -4,6 +4,7 @@ import com.scripto.backend.auth.dto.LoginDTO;
 import com.scripto.backend.auth.dto.TokenJWTDTO;
 import com.scripto.backend.auth.dto.UserRegisterDTO;
 import com.scripto.backend.user.dto.UserUpdateDTO;
+import com.scripto.backend.user.entity.User;
 import com.scripto.backend.user.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.token.TokenService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -61,4 +63,9 @@ public class UserController {
         return ResponseEntity.ok(new TokenJWTDTO(token));
     }
 
+    @DeleteMapping("/me/")
+    public ResponseEntity<Void> deleteOwnAccount(@AuthenticationPrincipal User user) {
+        userService.softDeleteAccount(user.getId());
+        return ResponseEntity.noContent().build();
+    }
 }

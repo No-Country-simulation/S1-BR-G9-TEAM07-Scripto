@@ -77,6 +77,7 @@ public class UserService {
         var authentication = authenticationManager.authenticate(authenticationToken);
         return jwtService.generateToken((User) authentication.getPrincipal());
     }
+
     @Transactional
     public void softDeleteAccount(Long userId) {
         var user = userRepository.findById(userId)
