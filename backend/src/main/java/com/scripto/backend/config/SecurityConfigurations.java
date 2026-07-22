@@ -1,5 +1,6 @@
-package com.scripto.backend.security;
+package com.scripto.backend.config;
 
+import com.scripto.backend.security.SecurityFilter;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Autowired;
