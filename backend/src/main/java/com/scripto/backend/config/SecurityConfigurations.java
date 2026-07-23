@@ -1,5 +1,6 @@
 package com.scripto.backend.config;
 
+import com.scripto.backend.security.LoginRateLimitFilter;
 import com.scripto.backend.security.SecurityFilter;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
@@ -25,6 +26,9 @@ public class SecurityConfigurations {
     @Autowired
     private SecurityFilter securityFilter;
 
+    @Autowired
+    private LoginRateLimitFilter loginRateLimitFilter;
+
     public final static String SECURITY = "bearerAuth";
 
     @Bean
@@ -38,6 +42,7 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/user/register/").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
+                .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
