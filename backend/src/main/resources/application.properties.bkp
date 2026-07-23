@@ -9,9 +9,9 @@ spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:${KEY_MYSQL_PASSWORD}}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
 spring.jpa.hibernate.ddl-auto=validate
-# spring.jpa.open-in-view=True
+spring.jpa.open-in-view=false
 spring.jpa.properties.hibernate.jdbc.time_zone=UTC
-# Convers√£o do Camel Case para Snake Case
+# Convers„o do Camel Case para Snake Case
 spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
 
 spring.flyway.enabled=true
@@ -22,5 +22,3 @@ server.port=${SERVER_PORT:8080}
 
 management.endpoints.web.exposure.include=health,info
 management.endpoint.health.probes.enabled=true
-
-jwt.secret=${JWT_SECRET}

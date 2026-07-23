@@ -18,7 +18,7 @@ target/
 *.iws
 *.iml
 *.ipr
-.env
+.env.exemplo
 
 ### NetBeans ###
 /nbproject/private/
@@ -41,7 +41,7 @@ log/
 spring.log
 
 ### Security & LGPD - Sensitive Files ###
-.env
+.env.exemplo
 .env.local
 .env.*.local
 *.pem
