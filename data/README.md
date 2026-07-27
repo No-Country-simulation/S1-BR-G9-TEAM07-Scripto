@@ -14,6 +14,12 @@ O fluxo abaixo apresenta todas as etapas desenvolvidas no módulo de Dados, desd
 
 ---
 
+## Arquitetura do Módulo Data & AI
+
+A arquitetura abaixo apresenta os principais componentes utilizados na preparação, processamento, classificação e geração da saída estruturada da Inteligência Artificial.
+
+![Arquitetura do Módulo Data & AI](assets/arquitetura-data-ai.png)
+
 ---
 
 # Objetivo
