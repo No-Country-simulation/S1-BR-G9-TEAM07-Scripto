@@ -18,6 +18,8 @@ export type Doc = {
   public: boolean;
   createdAt: string;
   source: "paste" | "file";
+  content: string;
+  fileName?: string;
 };
 
 const KEY = "scripto-docs";
@@ -64,7 +66,7 @@ export async function create(input: { title: string; content?: string; fileName?
   const doc: Doc = {
     id: crypto.randomUUID(),
     ownerId: user.id,
-    ownerName: user.name,
+    ownerName: user.fullName,
     title: input.title.trim(),
     summary: "Análise em andamento…",
     category: "—",
@@ -75,6 +77,8 @@ export async function create(input: { title: string; content?: string; fileName?
     public: true,
     createdAt: new Date().toISOString(),
     source: input.source,
+    content: input.content ?? "",
+    fileName: input.fileName,
   };
   docs.push(doc); write(docs);
   // simulate processing pipeline
@@ -151,4 +155,12 @@ export async function recommendations(): Promise<Doc[]> {
     .sort((a, b) => b.score - a.score)
     .slice(0, 6)
     .map(x => x.d);
+}
+
+
+export async function requestSummary(_id: string): Promise<never> {
+  throw Object.assign(
+    new Error("A geração de resumo ainda não está disponível: o backend não possui um endpoint para essa operação."),
+    { status: 501 },
+  );
 }

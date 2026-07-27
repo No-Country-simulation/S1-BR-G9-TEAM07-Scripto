@@ -1,50 +1,80 @@
-import { sleep } from "./api";
+import { api } from "./api";
 
 export type User = {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
   cpf: string; // apenas dígitos
   role: "user" | "admin";
   deletionScheduledAt?: string | null;
 };
 
-const USERS_KEY = "scripto-users";
 const CURRENT_KEY = "scripto-current-user";
 
-function readUsers(): User[] {
-  if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem(USERS_KEY) || "[]"); } catch { return []; }
-}
-function writeUsers(u: User[]) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
-
 export async function register(input: { name: string; email: string; cpf: string; password: string }) {
-  await sleep(500);
-  const users = readUsers();
-  if (users.find(u => u.email === input.email)) throw new Error("E-mail já cadastrado.");
-  const user: User = {
-    id: crypto.randomUUID(), name: input.name, email: input.email,
-    cpf: input.cpf.replace(/\D/g, ""), role: "user", deletionScheduledAt: null,
-  };
-  users.push(user); writeUsers(users);
-  localStorage.setItem(CURRENT_KEY, JSON.stringify(user));
-  localStorage.setItem("scripto-token", "mock-token-" + user.id);
-  return user;
+  try {
+    // Backend expects fullName, not name
+    const response = await api.post("/user/register", {
+      cpf: input.cpf.replace(/\D/g, ""),
+      fullName: input.name,
+      email: input.email,
+      password: input.password,
+    });
+
+    // After successful registration, automatically login to get token
+    const loginResponse = await login(input.email, input.password);
+    return loginResponse;
+  } catch (error: any) {
+    if (error.response?.status === 400) {
+      throw new Error("E-mail já cadastrado.");
+    } else if (error.response?.status === 422) {
+      const errors = error.response?.data?.errors;
+      if (errors?.email) throw new Error(errors.email);
+      if (errors?.cpf) throw new Error(errors.cpf);
+      if (errors?.password) throw new Error(errors.password);
+      throw new Error("Dados inválidos. Verifique os campos.");
+    }
+    throw new Error("Erro ao criar conta. Tente novamente.");
+  }
 }
 
-export async function login(email: string, _password: string) {
-  await sleep(400);
-  const users = readUsers();
-  const user = users.find(u => u.email === email);
-  if (!user) throw new Error("Credenciais inválidas.");
-  localStorage.setItem(CURRENT_KEY, JSON.stringify(user));
-  localStorage.setItem("scripto-token", "mock-token-" + user.id);
-  return user;
+export async function login(email: string, password: string) {
+  try {
+    const response = await api.post("/user/login", {
+      email,
+      password,
+    });
+
+    const token = response.data.token;
+    if (!token) throw new Error("Token não retornado pelo servidor.");
+    localStorage.setItem("scripto-token", token);
+
+    // Store user info temporarily (will be fetched from backend in future)
+    // For now, we'll create a minimal user object from the email
+    const user: User = {
+      id: "temp-id", // Will be replaced with actual ID from backend
+      fullName: "Usuário", // Will be fetched from backend
+      email,
+      cpf: "", // Will be fetched from backend
+      role: "user",
+      deletionScheduledAt: null,
+    };
+
+    localStorage.setItem(CURRENT_KEY, JSON.stringify(user));
+    return user;
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      throw new Error("Credenciais inválidas.");
+    } else if (error.response?.status === 422) {
+      throw new Error("Dados inválidos.");
+    }
+    throw new Error("Erro ao fazer login. Tente novamente.");
+  }
 }
 
 export async function adminLogin(email: string, _password: string) {
-  await sleep(400);
-  const admin: User = { id: "admin-1", name: "Moderador Scripto", email, cpf: "00000000000", role: "admin" };
+  // Admin login still uses mock for now - backend doesn't have admin endpoint
+  const admin: User = { id: "admin-1", fullName: "Moderador Scripto", email, cpf: "00000000000", role: "admin" };
   localStorage.setItem(CURRENT_KEY, JSON.stringify(admin));
   localStorage.setItem("scripto-token", "mock-admin-token");
   return admin;
@@ -60,27 +90,22 @@ export function logout() {
   localStorage.removeItem("scripto-token");
 }
 
+// These functions still use localStorage for now - backend endpoints not implemented yet
 export async function scheduleDeletion() {
   const user = currentUser(); if (!user) return;
   user.deletionScheduledAt = new Date().toISOString();
-  const users = readUsers().map(u => u.id === user.id ? user : u);
-  writeUsers(users);
   localStorage.setItem(CURRENT_KEY, JSON.stringify(user));
 }
 
 export async function reactivate() {
   const user = currentUser(); if (!user) return;
   user.deletionScheduledAt = null;
-  const users = readUsers().map(u => u.id === user.id ? user : u);
-  writeUsers(users);
   localStorage.setItem(CURRENT_KEY, JSON.stringify(user));
 }
 
-export function updateProfile(patch: Partial<Pick<User, "name" | "email">>) {
+export function updateProfile(patch: Partial<Pick<User, "fullName" | "email">>) {
   const user = currentUser(); if (!user) return null;
   const next = { ...user, ...patch };
-  const users = readUsers().map(u => u.id === user.id ? next : u);
-  writeUsers(users);
   localStorage.setItem(CURRENT_KEY, JSON.stringify(next));
   return next;
 }

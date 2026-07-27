@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user/")
+@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
@@ -34,13 +34,13 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/{id}/")
+    @GetMapping("/{id}")
     public ResponseEntity getUserById(@PathVariable Long id) {
         var user = userService.findUserById(id);
         return ResponseEntity.ok(user);
     }
 
-    @PutMapping("/{id}/")
+    @PutMapping("/{id}")
     @Transactional
     public ResponseEntity updateUserById(@PathVariable Long id, @RequestBody UserUpdateDTO userUpdateDTO) {
         userService.updateUserById(id, userUpdateDTO);
@@ -48,8 +48,9 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/register/")
+    @PostMapping("/register")
     public ResponseEntity<Void> registerUser(@RequestBody @Valid UserRegisterDTO userRegisterDTO) {
+        System.out.println(">>> ENTROU NO REGISTER <<<");
         if (userService.findUserByEmail(userRegisterDTO.email()) != null) {
             return ResponseEntity.badRequest().build();
         }
@@ -57,13 +58,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PostMapping("/login/")
+    @PostMapping("/login")
     public ResponseEntity<TokenJWTDTO> loginUser(@RequestBody @Valid LoginDTO loginDTO) {
         var token = this.userService.loginUser(loginDTO);
         return ResponseEntity.ok(new TokenJWTDTO(token));
     }
 
-    @DeleteMapping("/me/")
+    @DeleteMapping("/me")
     public ResponseEntity<Void> deleteOwnAccount(@AuthenticationPrincipal User user) {
         userService.softDeleteAccount(user.getId());
         return ResponseEntity.noContent().build();
