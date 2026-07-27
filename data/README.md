@@ -262,17 +262,42 @@ Nesta etapa foram realizadas atividades como:
 | Desenvolvimento | Jupyter Notebook |
 | Versionamento | Git e GitHub |
 
+------
+
+# Próximas Evoluções
+
+O módulo **Data & AI** foi desenvolvido de forma modular, permitindo futuras evoluções sem impacto significativo na arquitetura atual.
+
+As principais melhorias previstas são:
+
+- Implementação de Fine-tuning do modelo de classificação.
+- Suporte a novos formatos de documentos técnicos.
+- Busca semântica utilizando banco vetorial.
+- Integração completa com Oracle Cloud Infrastructure (OCI).
+- Exposição do modelo por meio de API REST.
+- Monitoramento de métricas do modelo em produção.
+- Automatização do pipeline de treinamento.
+
 ---
 
-# Responsabilidade da Equipe de Dados
+# Autora
 
-A equipe de Dados foi responsável por:
+**Juliana Ferreira dos Santos Magalhães**
 
-- preparação do dataset;
-- organização da base de conhecimento;
-- desenvolvimento dos pipelines de IA;
-- documentação técnica;
-- estruturação dos dados para integração com o backend.
+Responsável pelo módulo **Data & AI**, incluindo:
+
+- Engenharia e preparação dos dados;
+- Análise Exploratória (EDA);
+- Limpeza e tratamento do dataset;
+- Geração de embeddings semânticos;
+- Desenvolvimento do pipeline de Inteligência Artificial;
+- Classificação automática dos documentos;
+- Estruturação da saída em JSON;
+- Documentação técnica da área de Dados.
+
+---
+
+> Desenvolvido durante o **Hackathon ONE – Oracle Next Education (Oracle + Alura)**.
 
 ---
 
