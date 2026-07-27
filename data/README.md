@@ -1,5 +1,13 @@
 # 📊 Data - Projeto SCRIPTO
-
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
+![Pandas](https://img.shields.io/badge/Pandas-2.x-150458?logo=pandas)
+![NumPy](https://img.shields.io/badge/NumPy-Scientific%20Computing-013243?logo=numpy)
+![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-ML-F7931E?logo=scikitlearn)
+![Sentence Transformers](https://img.shields.io/badge/Sentence--Transformers-NLP-4B8BBE)
+![Git](https://img.shields.io/badge/Git-Version%20Control-F05032?logo=git)
+![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)
+![Oracle ONE](https://img.shields.io/badge/Oracle-ONE-F80000?logo=oracle)
+![Alura](https://img.shields.io/badge/Alura-Education-051933)
 ## Visão Geral
 
 A pasta **data** concentra toda a estrutura de Ciência de Dados e Inteligência Artificial desenvolvida para o projeto **SCRIPTO** durante o Hackathon ONE (Oracle + Alura).
