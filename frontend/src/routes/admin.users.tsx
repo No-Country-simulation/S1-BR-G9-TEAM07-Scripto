@@ -16,7 +16,7 @@ function AdminUsers() {
   const docs: Doc[] = JSON.parse(typeof window === "undefined" ? "[]" : localStorage.getItem("scripto-docs") || "[]");
 
   const filtered = useMemo(() => users.filter(u =>
-    !q || u.name.toLowerCase().includes(q.toLowerCase()) || u.email.toLowerCase().includes(q.toLowerCase())
+    !q || u.fullName.toLowerCase().includes(q.toLowerCase()) || u.email.toLowerCase().includes(q.toLowerCase())
   ), [users, q]);
 
   return (
@@ -45,7 +45,7 @@ function AdminUsers() {
               const count = docs.filter(d => d.ownerId === u.id).length;
               return (
                 <tr key={u.id} className="border-t border-border">
-                  <td className="p-3">{u.name}</td>
+                  <td className="p-3">{u.fullName}</td>
                   <td className="p-3 text-taupe">{u.email}</td>
                   <td className="p-3">{count}</td>
                   <td className="p-3">

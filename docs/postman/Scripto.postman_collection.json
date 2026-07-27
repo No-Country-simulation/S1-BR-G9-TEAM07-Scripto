@@ -1,0 +1,431 @@
+{
+  "info": {
+    "name": "Scripto API",
+    "description": "Collection for Scripto Backend API - User Endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "{{baseUrl}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"12345678901\",\n  \"fullName\": \"João Silva\",\n  \"email\": \"joao.silva@example.com\",\n  \"password\": \"Senha@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/register/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "register", ""]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token) {",
+                  "    pm.environment.set(\"accessToken\", response.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao.silva@example.com\",\n  \"password\": \"Senha@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/login/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "login", ""]
+            },
+            "description": "Login and receive JWT token"
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Invalid Credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao.silva@example.com\",\n  \"password\": \"WrongPassword@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/login/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "login", ""]
+            },
+            "description": "Test login with invalid credentials (should return 401)"
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Missing Fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao.silva@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/login/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "login", ""]
+            },
+            "description": "Test login without password (should return 422)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", ""]
+            },
+            "description": "Get all users (requires authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users - No Token",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/user/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", ""]
+            },
+            "description": "Test without token (should return 401)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "{{userId}}", ""]
+            },
+            "description": "Get user by ID (requires authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID - Invalid ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/99999/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "99999", ""]
+            },
+            "description": "Test with non-existent user ID (should return 404)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"João Silva Jr.\",\n  \"email\": \"joao.jr@example.com\",\n  \"password\": \"NovaSenha@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "{{userId}}", ""]
+            },
+            "description": "Update user by ID (requires authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User - Invalid Fields",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"João\",\n  \"email\": \"joao.jr@example.com\",\n  \"password\": \"NovaSenha@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "{{userId}}", ""]
+            },
+            "description": "Test with fullName too short (should return 422)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Own Account (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/me/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "me", ""]
+            },
+            "description": "Soft delete own account (requires authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Own Account - No Token",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/user/me/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "me", ""]
+            },
+            "description": "Test without token (should return 401)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Register - Duplicate Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"98765432100\",\n  \"fullName\": \"Maria Santos\",\n  \"email\": \"joao.silva@example.com\",\n  \"password\": \"Senha@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/register/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "register", ""]
+            },
+            "description": "Test registration with duplicate email (should return 400)"
+          },
+          "response": []
+        },
+        {
+          "name": "Register - Invalid CPF",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"123\",\n  \"fullName\": \"João Silva\",\n  \"email\": \"joao.silva2@example.com\",\n  \"password\": \"Senha@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/register/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "register", ""]
+            },
+            "description": "Test registration with invalid CPF (should return 422)"
+          },
+          "response": []
+        },
+        {
+          "name": "Register - Weak Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"98765432109\",\n  \"fullName\": \"Pedro Costa\",\n  \"email\": \"pedro.costa@example.com\",\n  \"password\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/register/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "register", ""]
+            },
+            "description": "Test registration with weak password (should return 422)"
+          },
+          "response": []
+        },
+        {
+          "name": "Register - Missing Fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"98765432109\",\n  \"fullName\": \"Pedro Costa\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/register/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "register", ""]
+            },
+            "description": "Test registration without email and password (should return 422)"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid JSON Format",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ invalid json }"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/register/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "register", ""]
+            },
+            "description": "Test with invalid JSON (should return 400)"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Content-Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "test"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/register/",
+              "host": ["{{baseUrl}}"],
+              "path": ["user", "register", ""]
+            },
+            "description": "Test with wrong content-type (should return 415)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -14,9 +14,9 @@ function AppLayout() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       <AppSidebar />
-      <main className="flex-1 overflow-x-hidden">
+      <main className="h-screen min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
         <Outlet />
       </main>
     </div>

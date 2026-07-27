@@ -18,7 +18,7 @@ const maskCpf = (v: string) => v.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3
 function ProfilePage() {
   const router = useRouter();
   const user = currentUser();
-  const [name, setName] = useState(user?.name ?? "");
+  const [name, setName] = useState(user?.fullName ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [docs, setDocs] = useState<Doc[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);

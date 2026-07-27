@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FileText, UploadCloud, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,8 @@ function NewDoc() {
   const [file, setFile] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
   const [titleErr, setTitleErr] = useState<string | null>(null);
+  const [contentErr, setContentErr] = useState<string | null>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
   const [err, setErr] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<Doc | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +30,13 @@ function NewDoc() {
   const locked = !!submitted;
 
   async function submit(e: React.FormEvent) {
-    e.preventDefault(); setErr(null); setTitleErr(null);
+    e.preventDefault(); setErr(null); setTitleErr(null); setContentErr(null);
+    if (!title.trim()) return setTitleErr("O título do documento é obrigatório.");
+    if (mode === "paste" && !content.trim()) {
+      setContentErr("O conteúdo do documento é obrigatório.");
+      requestAnimationFrame(() => contentRef.current?.focus());
+      return;
+    }
     if (!consent) return setErr("Você precisa confirmar o consentimento de publicação.");
     if (title.length > 150) return setTitleErr("Título muito longo (máx 150).");
     if (mode === "paste" && content.length > MAX_TEXT) return setErr(`Texto acima de ${MAX_TEXT.toLocaleString()} caracteres.`);
@@ -84,14 +92,18 @@ function NewDoc() {
 
         {mode === "paste" ? (
           <div>
-            <Label htmlFor="content">Conteúdo</Label>
-            <Textarea id="content" rows={12} disabled={locked} value={content}
-              onChange={e => setContent(e.target.value)}
+            <Label htmlFor="content">Conteúdo *</Label>
+            <Textarea ref={contentRef} id="content" rows={12} required disabled={locked} value={content}
+              onChange={e => { setContent(e.target.value); if (contentErr) setContentErr(null); }}
+              aria-invalid={!!contentErr}
+              aria-describedby={contentErr ? "content-error" : undefined}
               placeholder="Cole aqui o texto que deseja organizar…"
-              className="mt-1 font-mono text-sm" />
-            <p className="mt-1 text-right text-xs text-taupe">
-              {content.length.toLocaleString()} / {MAX_TEXT.toLocaleString()} caracteres
-            </p>
+              className={`mt-1 font-mono text-sm ${contentErr ? "border-vinho ring-1 ring-vinho" : ""}`} />
+            <div className="mt-1 flex justify-between gap-3 text-xs">
+              <span id="content-error" role="alert" className="text-vinho">{contentErr}</span>
+              <span className="ml-auto text-taupe">
+              {content.length.toLocaleString()} / {MAX_TEXT.toLocaleString()} caracteres</span>
+            </div>
           </div>
         ) : (
           <div>

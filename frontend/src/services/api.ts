@@ -1,12 +1,18 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
-/**
- * Instância Axios pronta para a futura integração com a API Java Spring Boot.
- * Enquanto isso, todos os services usam dados mockados em memória / localStorage.
- */
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const apiBaseUrl = configuredBaseUrl || "http://localhost:8080";
+
+if (!configuredBaseUrl && import.meta.env.DEV) {
+  console.warn(
+    "VITE_API_BASE_URL não foi configurada. Usando http://localhost:8080 apenas em desenvolvimento.",
+  );
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? "/api",
-  timeout: 15000,
+  baseURL: apiBaseUrl,
+  timeout: 15_000,
+  headers: { "Content-Type": "application/json" },
 });
 
 api.interceptors.request.use((config) => {
@@ -17,4 +23,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      localStorage.removeItem("scripto-token");
+      localStorage.removeItem("scripto-current-user");
+    }
+    return Promise.reject(error);
+  },
+);
+
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
