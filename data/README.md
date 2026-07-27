@@ -100,6 +100,39 @@ data/
     ├── README.md
     └── 04_Preparacao_Dataset_StackOverflow.ipynb
 ---
+---
+
+# Resultados Obtidos
+
+O módulo Data & AI implementa um pipeline completo para processamento, representação semântica e classificação automática de documentos técnicos, gerando uma saída estruturada em formato JSON para integração com outras aplicações.
+
+### Principais resultados
+
+- Organização automática de documentos técnicos.
+- Conversão de textos em embeddings semânticos utilizando Sentence Transformers.
+- Classificação automática das categorias dos documentos.
+- Cálculo da confiança da previsão realizada pelo modelo.
+- Geração de uma resposta estruturada em JSON para integração com outras aplicações.
+- Arquitetura preparada para integração com Backend Java (Spring Boot).
+
+### Exemplo de saída JSON
+
+```json
+{
+  "categoria": "Backend",
+  "confianca": 0.96,
+  "tags": [
+    "API",
+    "Java",
+    "Spring"
+  ],
+  "resumo": "Documento relacionado ao desenvolvimento Backend.",
+  "nivel": "Intermediário"
+}
+```
+
+---
+
 
 # Arquitetura da área de Dados
 
