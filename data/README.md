@@ -21,7 +21,61 @@ A arquitetura abaixo apresenta os principais componentes utilizados na preparaç
 ![Arquitetura do Módulo Data & AI](assets/arquitetura-data-ai.png)
 
 ---
+## Tecnologias Utilizadas
 
+Este módulo foi desenvolvido utilizando ferramentas e bibliotecas voltadas para Ciência de Dados, Processamento de Linguagem Natural e Machine Learning.
+
+---
+
+## Tecnologias Utilizadas
+
+Este módulo foi desenvolvido com ferramentas e bibliotecas voltadas para Ciência de Dados, Processamento de Linguagem Natural, Machine Learning e organização de documentos técnicos.
+
+| Tecnologia | Finalidade |
+|---|---|
+| **Python** | Desenvolvimento dos scripts, funções e pipelines de processamento |
+| **Pandas** | Leitura, limpeza, transformação e análise dos dados |
+| **NumPy** | Operações numéricas e armazenamento dos embeddings |
+| **Sentence-Transformers** | Geração de embeddings semânticos a partir dos textos |
+| **all-MiniLM-L6-v2** | Modelo utilizado para gerar vetores semânticos com 384 dimensões |
+| **scikit-learn** | Treinamento do classificador, predição das categorias e cálculo de confiança |
+| **Similaridade de Cosseno** | Comparação entre embeddings e identificação de documentos semelhantes |
+| **PyArrow** | Leitura e escrita dos datasets armazenados em formato Parquet |
+| **Jupyter Notebook / Google Colab** | Desenvolvimento, execução e documentação dos experimentos |
+| **Kaggle** | Origem do dataset de documentos técnicos utilizado no projeto |
+| **Git e GitHub** | Versionamento, organização dos arquivos e colaboração com a equipe |
+| **JSON** | Formato estruturado de saída para integração com outras aplicações |
+
+> O módulo **Data & AI** utiliza técnicas de Processamento de Linguagem Natural e Machine Learning para organizar, representar, classificar e recomendar documentos técnicos de forma automática.
+
+---
+---
+
+## Fluxo dos Arquivos e Notebooks
+
+Os notebooks da área de Dados foram organizados em uma sequência lógica de execução, permitindo acompanhar todas as etapas do projeto desde a análise inicial até a geração do modelo de Inteligência Artificial.
+
+```text
+Dataset Técnico
+      ↓
+01_EDA.ipynb
+      ↓
+02_Limpeza.ipynb
+      ↓
+03_Modelo_IA_SCRIPTO.ipynb
+      ↓
+Embeddings e Classificação
+      ↓
+Busca Semântica e Recomendação
+      ↓
+Saída Estruturada em JSON
+
+## Funcionamento da Inteligência Artificial
+
+O diagrama abaixo apresenta o fluxo completo executado pelo modelo de Inteligência Artificial, desde o recebimento do documento técnico até a geração da saída estruturada em JSON.
+```
+
+![Funcionamento da IA](assets/funcionamento-ia.png)
 # Objetivo
 
 Esta estrutura foi criada para organizar todas as etapas relacionadas ao processamento dos dados, desde a obtenção do dataset até a geração das previsões realizadas pelo modelo de Inteligência Artificial.
