@@ -6,6 +6,14 @@ A pasta **data** concentra toda a estrutura de Ciência de Dados e Inteligência
 
 Aqui estão organizados os datasets, notebooks de preparação, pipelines de Inteligência Artificial e documentos técnicos utilizados para construção da solução.
 
+## Pipeline de Ciência de Dados
+
+O fluxo abaixo apresenta todas as etapas desenvolvidas no módulo de Dados, desde a preparação do dataset até a geração da saída estruturada da Inteligência Artificial.
+
+![Pipeline de Ciência de Dados](assets/pipeline-data.png)
+
+---
+
 ---
 
 # Objetivo
