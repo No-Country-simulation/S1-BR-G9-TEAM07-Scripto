@@ -3,22 +3,19 @@ package com.scripto.backend.user.service;
 import com.scripto.backend.auth.dto.LoginDTO;
 import com.scripto.backend.auth.dto.UserRegisterDTO;
 import com.scripto.backend.security.JwtService;
+import com.scripto.backend.user.dto.UserReactivateAccountDTO;
 import com.scripto.backend.user.dto.UserUpdateDTO;
 import com.scripto.backend.user.dto.UserViewDTO;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.token.TokenService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -81,10 +78,24 @@ public class UserService {
     @Transactional
     public void softDeleteAccount(Long userId) {
         var user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
-
-        user.setActive(false);
-        user.setDeletedAt(LocalDateTime.now());
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
+        user.deactivate();
         userRepository.save(user);
+    }
+
+    @Transactional
+    public void reactivateAccount(UserReactivateAccountDTO userReactivateAccountDTO) {
+        var user = userRepository.findOptionalByEmail(userReactivateAccountDTO.email())
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado!"));
+
+        if (!user.canBeReactivated()) {
+            throw new IllegalStateException("O prazo para reativação da conta expirou ou a conta não está elegível para reativação.");
+        }
+
+        if (!passwordEncoder.matches(userReactivateAccountDTO.password(), user.getPassword())) {
+            throw new IllegalArgumentException("Senha inválida!");
+        }
+
+        user.reactivate();
     }
 }

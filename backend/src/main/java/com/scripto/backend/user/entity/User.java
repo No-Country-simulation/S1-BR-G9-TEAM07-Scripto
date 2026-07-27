@@ -108,4 +108,22 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return Boolean.TRUE.equals(active);
     }
+
+    public void deactivate() {
+        this.active = false;
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void reactivate() {
+        this.active = true;
+        this.deletedAt = null;
+        this.failedLoginAttempts = 0;
+    }
+
+    public boolean canBeReactivated() {
+        if (deletedAt == null) {
+            return false;
+        }
+        return deletedAt.plusDays(30).isAfter(LocalDateTime.now());
+    }
 }
