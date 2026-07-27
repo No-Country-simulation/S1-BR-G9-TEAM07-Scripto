@@ -130,6 +130,41 @@ O módulo Data & AI implementa um pipeline completo para processamento, represen
   "nivel": "Intermediário"
 }
 ```
+---
+
+# 📊 Métricas do Dataset
+
+O desenvolvimento do módulo **Data & AI** foi baseado na análise e processamento de uma base pública de documentos técnicos, permitindo construir um pipeline consistente para classificação automática de conteúdos.
+
+| Métrica | Valor |
+|---------|------:|
+| Dataset de origem | Kaggle |
+| Total de documentos analisados | **2.900** |
+| Documentos após limpeza | **2.879** |
+| Documentos README utilizados na IA | **941** |
+| Dimensão dos embeddings | **384** |
+| Modelo de embeddings | **all-MiniLM-L6-v2 (Sentence Transformers)** |
+| Modelo de classificação | **Scikit-learn** |
+| Formato de saída | **JSON** |
+
+### Categorias identificadas
+
+| Categoria | Quantidade |
+|-----------|-----------:|
+| Documentação | 941 |
+| Licenças | 645 |
+| Dependências | 322 |
+| Contribuição | 262 |
+| Histórico de Alterações | 195 |
+| Governança | 130 |
+| Segurança | 122 |
+| Configuração de Linguagem | 118 |
+| Configuração Python | 72 |
+| Configuração Java | 72 |
+| Outros | 781 |
+
+> Todas essas métricas foram obtidas durante as etapas de preparação, limpeza e análise exploratória do dataset, servindo como base para o treinamento e validação do pipeline de Inteligência Artificial.
+
 
 ---
 
