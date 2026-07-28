@@ -126,4 +126,9 @@ public class User implements UserDetails {
         }
         return deletedAt.plusDays(30).isAfter(LocalDateTime.now());
     }
+
+    public void registerSuccessfulLogin() {
+        this.lastLoginAt = LocalDateTime.now();
+        this.failedLoginAttempts = 0;
+    }
 }

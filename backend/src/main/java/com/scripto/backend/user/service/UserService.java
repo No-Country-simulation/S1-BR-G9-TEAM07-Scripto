@@ -69,9 +69,13 @@ public class UserService {
         this.userRepository.save(user);
     }
 
+    @Transactional
     public String loginUser(@Valid LoginDTO loginDTO) {
         var authenticationToken = new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password());
         var authentication = authenticationManager.authenticate(authenticationToken);
+        
+        User user = (User) authentication.getPrincipal();
+        user.registerSuccessfulLogin();
         return jwtService.generateToken((User) authentication.getPrincipal());
     }
 
