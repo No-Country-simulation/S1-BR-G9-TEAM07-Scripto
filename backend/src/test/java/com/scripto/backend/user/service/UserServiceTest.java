@@ -3,20 +3,23 @@ package com.scripto.backend.user.service;
 import com.scripto.backend.auth.dto.LoginDTO;
 import com.scripto.backend.auth.dto.UserRegisterDTO;
 import com.scripto.backend.security.JwtService;
+import com.scripto.backend.user.dto.UserReactivateAccountDTO;
 import com.scripto.backend.user.dto.UserUpdateDTO;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UserServiceTest {
@@ -46,9 +49,9 @@ class UserServiceTest {
 
         // Arrange
         UserRegisterDTO dto = new UserRegisterDTO(
+                "12345678901",
                 "João da Silva",
                 "joao@email.com",
-                "12345678901",
                 "123456"
         );
 
@@ -60,7 +63,15 @@ class UserServiceTest {
 
         // Assert
         verify(passwordEncoder).encode("123456");
-        verify(userRepository).save(any(User.class));
+
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+
+        User usuarioSalvo = userCaptor.getValue();
+        assertEquals("João da Silva", usuarioSalvo.getFullName());
+        assertEquals("joao@email.com", usuarioSalvo.getEmail());
+        assertEquals("senhaCriptografada", usuarioSalvo.getPassword());
     }
 
     @Test
@@ -211,6 +222,92 @@ class UserServiceTest {
 
         verify(userRepository).save(user);
     }
+    @Test
+    void deveReativarContaComSucesso() {
+
+        // Arrange
+        UserReactivateAccountDTO dto = new UserReactivateAccountDTO(
+                "joao@email.com",
+                "123456"
+        );
+
+        User user = new User();
+        user.setEmail("joao@email.com");
+        user.setPasswordHash("senhaCriptografada");
+        user.setActive(false);
+        user.setDeletedAt(LocalDateTime.now().minusDays(10));
+        user.setFailedLoginAttempts(3);
+
+        when(userRepository.findOptionalByEmail("joao@email.com"))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches("123456", "senhaCriptografada"))
+                .thenReturn(true);
+
+        // Act
+        userService.reactivateAccount(dto);
+
+        // Assert
+        assertTrue(user.getActive());
+        assertNull(user.getDeletedAt());
+        assertEquals(0, user.getFailedLoginAttempts());
+
+        verify(userRepository).findOptionalByEmail("joao@email.com");
+        verify(passwordEncoder)
+                .matches("123456", "senhaCriptografada");
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoUsuarioNaoExistir() {
+
+        // Arrange
+        UserReactivateAccountDTO dto = new UserReactivateAccountDTO(
+                "joao@email.com",
+                "123456"
+        );
+
+        when(userRepository.findOptionalByEmail("joao@email.com"))
+                .thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> userService.reactivateAccount(dto)
+        );
+
+        verify(userRepository).findOptionalByEmail("joao@email.com");
+        verify(passwordEncoder, never()).matches(any(), any());
+
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoSenhaForIncorreta() {
+
+        // Arrange
+        UserReactivateAccountDTO dto = new UserReactivateAccountDTO(
+                "joao@email.com",
+                "123456"
+        );
+
+        User user = new User();
+        user.setDeletedAt(LocalDateTime.now().minusDays(5));
+        user.setActive(false);
+        user.setPasswordHash("senhaCriptografada");
+
+        when(userRepository.findOptionalByEmail("joao@email.com"))
+                .thenReturn(Optional.of(user));
+
+        when(passwordEncoder.matches("123456", "senhaCriptografada"))
+                .thenReturn(false);
+
+        // Act + Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.reactivateAccount(dto)
+        );
+    }
+
+
 
 
 }
