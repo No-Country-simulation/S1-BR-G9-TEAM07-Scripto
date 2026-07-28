@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface AiAnalysisRepository extends JpaRepository<AIAnalyse, Long> {
+public interface AIAnalysisRepository extends JpaRepository<AIAnalyse, Long> {
 
     List<AIAnalyse> findByDocument(Document document);
 }

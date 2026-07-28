@@ -18,8 +18,8 @@ public class AIAnalyse {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "document_id", nullable = false, unique = true)
     private Document document;
 
     @Column(length = 100, nullable = false)
@@ -29,7 +29,7 @@ public class AIAnalyse {
     @Enumerated(EnumType.STRING)
     private Level knowledgeLevel;
 
-    @Column(length = 250, nullable = false)
+    @Column(length = 250)
     private String summary;
 
     @Column(name = "original_json", columnDefinition = "JSON", nullable = false)

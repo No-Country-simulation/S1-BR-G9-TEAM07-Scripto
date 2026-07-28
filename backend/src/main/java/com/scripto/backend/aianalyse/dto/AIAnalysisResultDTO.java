@@ -5,7 +5,7 @@ import com.scripto.backend.aianalyse.domain.Level;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record AnalysisResultDTO(
+public record AIAnalysisResultDTO(
 
         Long analysisId,
 

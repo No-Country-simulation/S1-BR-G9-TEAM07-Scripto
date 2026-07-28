@@ -1,6 +1,6 @@
 package com.scripto.backend.document.dto;
 
-import com.scripto.backend.aianalyse.dto.AnalysisResultDTO;
+import com.scripto.backend.aianalyse.dto.AIAnalysisResultDTO;
 import com.scripto.backend.document.domain.Status;
 
 import java.time.LocalDateTime;
@@ -15,7 +15,7 @@ public record DocumentResponseDTO(
 
         Status status,
 
-        AnalysisResultDTO analyses,
+        AIAnalysisResultDTO analyses,
 
         LocalDateTime createdAt,
 

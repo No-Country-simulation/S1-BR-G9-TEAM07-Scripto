@@ -38,8 +38,8 @@ public class Document {
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<DocumentTag> documentTags;
 
-    @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<AIAnalyse> aiAnalyses;
+    @OneToOne(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private AIAnalyse aiAnalyse;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
@@ -49,4 +49,9 @@ public class Document {
 
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
+
+    public Document(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }
