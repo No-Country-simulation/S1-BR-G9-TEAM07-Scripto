@@ -6,6 +6,8 @@ import com.scripto.backend.tag.entity.DocumentTag;
 import com.scripto.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,9 +46,11 @@ public class Document {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @CreationTimestamp
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 

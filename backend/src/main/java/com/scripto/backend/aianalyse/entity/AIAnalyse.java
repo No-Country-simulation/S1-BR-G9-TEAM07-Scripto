@@ -4,6 +4,7 @@ import com.scripto.backend.aianalyse.domain.Level;
 import com.scripto.backend.document.entity.Document;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -35,6 +36,7 @@ public class AIAnalyse {
     @Column(name = "original_json", columnDefinition = "JSON", nullable = false)
     private String originalJson;
 
+    @CreationTimestamp
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 }
