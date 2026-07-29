@@ -307,6 +307,38 @@ class UserServiceTest {
         );
     }
 
+    @Test
+    void deveLancarExcecaoQuandoContaNaoPuderSerReativada() {
+
+        // Arrange
+        UserReactivateAccountDTO dto =
+                new UserReactivateAccountDTO(
+                        "joao@email.com",
+                        "123456"
+                );
+
+        User user = new User();
+        user.setEmail("joao@email.com");
+        user.setPasswordHash("senhaCriptografada");
+        user.setActive(false);
+        user.setDeletedAt(LocalDateTime.now().minusDays(31));
+
+        when(userRepository.findOptionalByEmail("joao@email.com"))
+                .thenReturn(Optional.of(user));
+
+        // Act + Assert
+        assertThrows(
+                IllegalStateException.class,
+                () -> userService.reactivateAccount(dto)
+        );
+
+        verify(userRepository)
+                .findOptionalByEmail("joao@email.com");
+
+        verify(passwordEncoder, never())
+                .matches(any(), any());
+    }
+
 
 
 
