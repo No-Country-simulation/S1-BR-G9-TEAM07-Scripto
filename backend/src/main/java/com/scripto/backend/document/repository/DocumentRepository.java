@@ -22,7 +22,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             LEFT JOIN d.documentTags dt
             LEFT JOIN dt.tag t
             WHERE d.user = :user
-                AND d.deletedAt IS NULL
                 AND (:category IS NULL OR a.category = :category)
                 AND (:tag IS NULL OR LOWER(t.name) = LOWER (:tag))
                 AND (:level IS NULL OR  a.knowledgeLevel = :level)
@@ -35,4 +34,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             @Param("level") Level level,
             @Param("status") Status status
             );
+
+    Optional<Document> findByIdAndUser(Long documentId, User user);
 }

@@ -42,4 +42,10 @@ public class DocumentController {
             ) {
         return ResponseEntity.ok(documentService.findDocuments(user, category, tag, level, status));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        documentService.deleteDocument(id, user);
+        return ResponseEntity.noContent().build();
+    }
 }

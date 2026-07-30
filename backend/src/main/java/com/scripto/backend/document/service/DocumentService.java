@@ -19,8 +19,10 @@ import com.scripto.backend.tag.entity.Tag;
 import com.scripto.backend.tag.repository.DocumentTagRepository;
 import com.scripto.backend.tag.repository.TagRepository;
 import com.scripto.backend.user.entity.User;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -105,5 +107,12 @@ public class DocumentService {
         .stream()
         .map(DocumentListDTO::new)
         .toList();
+    }
+
+    @Transactional
+    public void deleteDocument(Long documentId, User user) {
+        Document document = documentRepository.findByIdAndUser(documentId, user)
+                .orElseThrow(() -> new EntityNotFoundException("Documento não encontrado!"));
+        documentRepository.delete(document);
     }
 }
