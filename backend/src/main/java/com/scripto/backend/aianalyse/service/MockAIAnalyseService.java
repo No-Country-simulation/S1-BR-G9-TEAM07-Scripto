@@ -14,11 +14,11 @@ public class MockAIAnalyseService {
     public AIAnalysisResultDTO analyse(Document document) {
         return new AIAnalysisResultDTO(
                 1L,
-                "Backend",
+                "DevOps",
                 0.89,
-                List.of("Java", "Spring Boot", "API REST"),
+                List.of("Cloud", "CI/CD", "Jenkins", "Git"),
                 Level.BEGINNER,
-                "Introdução aos conceitos básicos de APIs REST com Spring Boot",
+                "Automação e envio de código em nuvem usando Git e Jenkins.",
                 LocalDateTime.now());
     }
 }
