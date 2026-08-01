@@ -1,5 +1,3 @@
-USE scripto_db;
-
 INSERT INTO users (full_name, cpf, email, password_hash, active)
 VALUES
 ('Amanda Johnson', '11122233344', 'amanda.johnson@example.com', '$2a$12$4YDOYuM1jTY2/lHSh9OoX.6eUcamkL/R8XAeKEigB1JmFyxK1rsk2', TRUE),
