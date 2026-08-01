@@ -14,11 +14,15 @@ import java.util.List;
 @Table(name = "tags")
 @EqualsAndHashCode(of = "id")
 public class Tag {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 50, nullable = false, unique = true)
+    @Column(length = 50, nullable = false)
     private String name;
+
+    @Column(name = "normalized_name", length = 50, nullable = false, unique = true)
+    private String normalizedName;
 
     @OneToMany(mappedBy = "tag")
     private List<DocumentTag> documentTags;
