@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#62190C">
+    <title>Scripto API • Documentação</title>
+    <link rel="icon" type="image/svg+xml" href="/logo-bege.svg">
+    <link rel="stylesheet" href="/swagger-ui/swagger-ui.css">
+    <link rel="stylesheet" href="/docs/custom.css">
+</head>
+<body>
+<div id="swagger-ui"></div>
+<script src="/swagger-ui/swagger-ui-bundle.js"></script>
+<script src="/swagger-ui/swagger-ui-standalone-preset.js"></script>
+<script>
+    window.onload = function () {
+        window.ui = SwaggerUIBundle({
+            url: "/v3/api-docs",
+            dom_id: "#swagger-ui",
+            deepLinking: true,
+            displayRequestDuration: true,
+            docExpansion: "none",
+            filter: true,
+            operationsSorter: "method",
+            tagsSorter: "alpha",
+            tryItOutEnabled: true,
+            persistAuthorization: true,
+            defaultModelsExpandDepth: -1,
+            syntaxHighlight: {
+                activated: false
+            },
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+            ],
+            plugins: [
+                SwaggerUIBundle.plugins.DownloadUrl
+            ],
+            layout: "StandaloneLayout"
+        });
+    };
+</script>
+</body>
+</html>
