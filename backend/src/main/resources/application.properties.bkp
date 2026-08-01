@@ -2,10 +2,10 @@ spring.application.name=backend
 
 spring.config.import=optional:file:.env[.properties]
 
-spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3307}/${KEY_MYSQL_DATABASE:scripto_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3307}/${MYSQL_DATABASE:scripto_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
 
-spring.datasource.username=${SPRING_DATASOURCE_USERNAME:${KEY_MYSQL_USER}}
-spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:${KEY_MYSQL_PASSWORD}}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:${MYSQL_USER}}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:${MYSQL_PASSWORD}}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
 spring.jpa.hibernate.ddl-auto=validate
