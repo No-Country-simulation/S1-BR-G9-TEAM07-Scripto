@@ -1,118 +1,154 @@
 package com.scripto.backend.document.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scripto.backend.aianalyse.domain.Level;
 import com.scripto.backend.aianalyse.dto.AIAnalysisResultDTO;
 import com.scripto.backend.aianalyse.entity.AIAnalyse;
-import com.scripto.backend.aianalyse.repository.AIAnalysisRepository;
-import com.scripto.backend.aianalyse.service.MockAIAnalyseService;
+import com.scripto.backend.classification.domain.ClassificationInput;
+import com.scripto.backend.classification.domain.FallbackReason;
+import com.scripto.backend.classification.domain.FinalClassification;
+import com.scripto.backend.classification.service.ClassificationOrchestrator;
 import com.scripto.backend.document.domain.Status;
+import com.scripto.backend.document.domain.Visibility;
+import com.scripto.backend.document.domain.ModerationStatus;
 import com.scripto.backend.document.dto.DocumentListDTO;
 import com.scripto.backend.document.dto.DocumentRequestDTO;
 import com.scripto.backend.document.dto.DocumentResponseDTO;
+import com.scripto.backend.document.dto.PublicDocumentDTO;
 import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.document.repository.DocumentRepository;
-import com.scripto.backend.tag.entity.DocumentTag;
-import com.scripto.backend.tag.entity.DocumentTagId;
-import com.scripto.backend.tag.entity.Tag;
-import com.scripto.backend.tag.repository.DocumentTagRepository;
-import com.scripto.backend.tag.repository.TagRepository;
+import com.scripto.backend.exception.ResourceNotFoundException;
+import com.scripto.backend.tag.service.TagService;
 import com.scripto.backend.user.entity.User;
-import jakarta.persistence.EntityNotFoundException;
+import com.scripto.backend.vector.VectorStore;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class DocumentService {
     private final DocumentRepository documentRepository;
-    private final AIAnalysisRepository aiAnalysisRepository;
-    private final MockAIAnalyseService mockAIAnalyseService;
+    private final DocumentPersistenceService persistenceService;
+    private final ClassificationOrchestrator classificationOrchestrator;
+    private final VectorStore vectorStore;
+    private final TagService tagService;
     private final ObjectMapper objectMapper;
-    private final TagRepository tagRepository;
-    private final DocumentTagRepository documentTagRepository;
 
-    public DocumentService(DocumentRepository documentRepository, AIAnalysisRepository aiAnalysisRepository, MockAIAnalyseService mockAIAnalyseService, ObjectMapper objectMapper, TagRepository tagRepository, DocumentTagRepository documentTagRepository) {
+    public DocumentService(
+            DocumentRepository documentRepository,
+            DocumentPersistenceService persistenceService,
+            ClassificationOrchestrator classificationOrchestrator,
+            VectorStore vectorStore,
+            TagService tagService,
+            ObjectMapper objectMapper
+    ) {
         this.documentRepository = documentRepository;
-        this.aiAnalysisRepository = aiAnalysisRepository;
-        this.mockAIAnalyseService = mockAIAnalyseService;
+        this.persistenceService = persistenceService;
+        this.classificationOrchestrator = classificationOrchestrator;
+        this.vectorStore = vectorStore;
+        this.tagService = tagService;
         this.objectMapper = objectMapper;
-        this.tagRepository = tagRepository;
-        this.documentTagRepository = documentTagRepository;
     }
 
-    public DocumentResponseDTO sendDocument(@Valid DocumentRequestDTO documentRequestDTO, User user) throws JsonProcessingException {
-        Document document = new Document(documentRequestDTO.title(), documentRequestDTO.content());
-        document.setUser(user);
-        document.setStatus(Status.PROCESSED);
+    public DocumentResponseDTO sendDocument(@Valid DocumentRequestDTO request, User user) {
+        Document document = persistenceService.createPending(request, user);
+        persistenceService.markProcessing(document.getId());
+        try {
+            FinalClassification classification = classificationOrchestrator.classify(new ClassificationInput(
+                    document.getTitle(),
+                    document.getContent(),
+                    document.isExternalAiAllowed()
+            ));
+            persistenceService.complete(document.getId(), classification);
+            vectorStore.recordClassification(
+                    document.getId(),
+                    document.getTitle(),
+                    document.getContent(),
+                    document.getVisibility(),
+                    document.isTrainingUseAllowed(),
+                    classification
+            );
+            return toResponse(loadDetailedOwned(document.getId(), user));
+        } catch (RuntimeException exception) {
+            persistenceService.markError(document.getId());
+            throw exception;
+        }
+    }
 
-        documentRepository.save(document);
+    public DocumentResponseDTO findById(Long documentId, User user) {
+        return toResponse(loadDetailedOwned(documentId, user));
+    }
 
-        var result = mockAIAnalyseService.analyse(document);
+    public PublicDocumentDTO findPublicById(Long documentId) {
+        Document document = documentRepository
+                .findByIdAndVisibilityAndModerationStatusAndStatusAndDeletedAtIsNull(
+                        documentId, Visibility.PUBLIC, ModerationStatus.APPROVED, Status.PROCESSED
+                )
+                .orElseThrow(() -> new ResourceNotFoundException("Documento público não encontrado."));
+        return new PublicDocumentDTO(document);
+    }
 
-        AIAnalyse aiAnalysis = new AIAnalyse();
-        aiAnalysis.setDocument(document);
-        aiAnalysis.setCategory(result.category());
-        aiAnalysis.setKnowledgeLevel(result.knowledgeLevel());
-        aiAnalysis.setSummary(result.summary());
+    public List<DocumentListDTO> findDocuments(User user, String category, String tag, Level level, Status status) {
+        String normalizedTag = tag == null ? null : tagService.normalizeKey(tag);
+        return documentRepository.findByFilters(user, category, normalizedTag, level, status)
+                .stream()
+                .map(DocumentListDTO::new)
+                .toList();
+    }
 
-        aiAnalysis.setOriginalJson(objectMapper.writeValueAsString(result));
-        aiAnalysis = aiAnalysisRepository.save(aiAnalysis);
+    public Document loadDetailedOwned(Long documentId, User user) {
+        Document document = documentRepository.findDetailedById(documentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Documento não encontrado."));
+        if (!document.getUser().getId().equals(user.getId()) || document.getDeletedAt() != null) {
+            throw new ResourceNotFoundException("Documento não encontrado.");
+        }
+        return document;
+    }
 
-        saveTags(document, result.tags());
-
+    private DocumentResponseDTO toResponse(Document document) {
+        AIAnalyse analysis = document.getAiAnalyse();
+        AIAnalysisResultDTO analysisDto = null;
+        if (analysis != null) {
+            analysisDto = new AIAnalysisResultDTO(
+                    analysis.getId(),
+                    analysis.getCategory(),
+                    analysis.getCategoryConfidence(),
+                    document.getDocumentTags().stream().map(item -> item.getTag().getName()).toList(),
+                    analysis.getDifficulty(),
+                    analysis.getDifficultyConfidence(),
+                    analysis.getSource(),
+                    analysis.getModelVersion(),
+                    analysis.getExternalModel(),
+                    parseFallbackReasons(analysis.getFallbackReasons()),
+                    analysis.getSuggestedCategory(),
+                    analysis.getCreatedAt()
+            );
+        }
         return new DocumentResponseDTO(
                 document.getId(),
                 document.getTitle(),
                 document.getContent(),
                 document.getStatus(),
-                new AIAnalysisResultDTO(
-                        aiAnalysis.getId(),
-                        aiAnalysis.getCategory(),
-                        result.probability(),
-                        result.tags(),
-                        aiAnalysis.getKnowledgeLevel(),
-                        aiAnalysis.getSummary(),
-                        aiAnalysis.getCreatedAt()
-                ),
+                document.getVisibility(),
+                document.getModerationStatus(),
+                document.isExternalAiAllowed(),
+                document.isTrainingUseAllowed(),
+                analysisDto,
                 document.getCreatedAt(),
                 document.getUpdatedAt()
         );
     }
 
-    private void saveTags(Document document, List<String> tags) {
-        for (String tagName : tags) {
-            Tag tag = tagRepository.findByNameIgnoreCase(tagName)
-                    .orElseGet(() ->
-                            tagRepository.save(new Tag(null, tagName, null, null))
-                    );
-
-            DocumentTag documentTag = new DocumentTag(new DocumentTagId(document.getId(), tag.getId()), document, tag);
-            documentTagRepository.save(documentTag);
+    private List<FallbackReason> parseFallbackReasons(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
         }
-    }
-
-    public List<DocumentListDTO> findDocuments(User user, String category, String tag, Level level, Status status) {
-        return documentRepository.findByFilters(
-                user,
-                category,
-                tag,
-                level,
-                status
-        )
-        .stream()
-        .map(DocumentListDTO::new)
-        .toList();
-    }
-
-    @Transactional
-    public void deleteDocument(Long documentId, User user) {
-        Document document = documentRepository.findByIdAndUser(documentId, user)
-                .orElseThrow(() -> new EntityNotFoundException("Documento não encontrado!"));
-        documentRepository.delete(document);
+        try {
+            return objectMapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception exception) {
+            return List.of();
+        }
     }
 }
