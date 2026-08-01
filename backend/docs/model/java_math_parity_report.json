@@ -1,0 +1,49 @@
+{
+  "model_version": "scripto-model-v3",
+  "samples": 4,
+  "all_labels_tags_and_policy_match": true,
+  "maximum_probability_or_similarity_absolute_error": 4.6842372136701727e-07,
+  "rows": [
+    {
+      "sample": 1,
+      "language": "pt-BR",
+      "exact_labels_tags_and_policy": true,
+      "numeric_absolute_errors": {
+        "category_confidence": 2.45453711078536e-07,
+        "difficulty_confidence": 1.2221879308604855e-07,
+        "centroid_similarity": 1.0742950440345567e-07
+      }
+    },
+    {
+      "sample": 2,
+      "language": "pt-BR",
+      "exact_labels_tags_and_policy": true,
+      "numeric_absolute_errors": {
+        "category_confidence": 3.150551218800146e-07,
+        "difficulty_confidence": 1.41815849841187e-07,
+        "centroid_similarity": 1.1316871645350446e-07
+      }
+    },
+    {
+      "sample": 3,
+      "language": "en",
+      "exact_labels_tags_and_policy": true,
+      "numeric_absolute_errors": {
+        "category_confidence": 4.6842372136701727e-07,
+        "difficulty_confidence": 2.2502967922388706e-07,
+        "centroid_similarity": 3.5401344300467485e-07
+      }
+    },
+    {
+      "sample": 4,
+      "language": "en",
+      "exact_labels_tags_and_policy": true,
+      "numeric_absolute_errors": {
+        "category_confidence": 2.2078869543751267e-07,
+        "difficulty_confidence": 6.627842574769005e-08,
+        "centroid_similarity": 2.4266815185081114e-07
+      }
+    }
+  ],
+  "note": "Computed from expected embeddings using the same linear math, difficulty features, tag selection, and acceptance policy implemented in Java."
+}
