@@ -40,7 +40,7 @@ public class RecommendationService {
             return List.of();
         }
         Map<Long, Document> documents = documentRepository
-                .findByIdInAndVisibilityAndModerationStatusAndStatusAndDeletedAtIsNull(
+                .findByIdInAndVisibilityAndModerationStatusAndStatus(
                         candidateIds,
                         Visibility.PUBLIC,
                         ModerationStatus.APPROVED,

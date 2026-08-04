@@ -61,8 +61,6 @@ public class Document {
     @OneToOne(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private AIAnalyse aiAnalyse;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
 
     @CreationTimestamp
     @Column(name = "created_at", insertable = false, updatable = false)

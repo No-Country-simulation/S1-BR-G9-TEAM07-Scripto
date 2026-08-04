@@ -33,7 +33,7 @@ public class ReportService {
     public ReportResponseDTO report(Long documentId, ReportRequestDTO request, User reporter) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Documento não encontrado."));
-        if (document.getVisibility() != Visibility.PUBLIC || document.getDeletedAt() != null) {
+        if (document.getVisibility() != Visibility.PUBLIC) {
             throw new ResourceNotFoundException("Documento não encontrado.");
         }
         if (document.getUser().getId().equals(reporter.getId())) {

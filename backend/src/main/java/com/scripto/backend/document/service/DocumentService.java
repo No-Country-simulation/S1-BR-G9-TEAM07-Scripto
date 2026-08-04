@@ -24,6 +24,7 @@ import com.scripto.backend.user.entity.User;
 import com.scripto.backend.vector.VectorStore;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -83,7 +84,7 @@ public class DocumentService {
 
     public PublicDocumentDTO findPublicById(Long documentId) {
         Document document = documentRepository
-                .findByIdAndVisibilityAndModerationStatusAndStatusAndDeletedAtIsNull(
+                .findByIdAndVisibilityAndModerationStatusAndStatus(
                         documentId, Visibility.PUBLIC, ModerationStatus.APPROVED, Status.PROCESSED
                 )
                 .orElseThrow(() -> new ResourceNotFoundException("Documento público não encontrado."));
@@ -98,10 +99,18 @@ public class DocumentService {
                 .toList();
     }
 
+    @Transactional
+    public void deleteDocument(Long documentId, User user) {
+        Document document = documentRepository.findByIdAndUser(documentId, user)
+                .orElseThrow(() -> new ResourceNotFoundException("Documento não encontrado."));
+        vectorStore.deleteDocumentData(documentId);
+        documentRepository.delete(document);
+    }
+
     public Document loadDetailedOwned(Long documentId, User user) {
         Document document = documentRepository.findDetailedById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Documento não encontrado."));
-        if (!document.getUser().getId().equals(user.getId()) || document.getDeletedAt() != null) {
+        if (!document.getUser().getId().equals(user.getId())) {
             throw new ResourceNotFoundException("Documento não encontrado.");
         }
         return document;

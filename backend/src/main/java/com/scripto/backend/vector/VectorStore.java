@@ -17,6 +17,8 @@ public interface VectorStore {
             FinalClassification classification
     );
 
+    void deleteDocumentData(Long documentId);
+
     List<SimilarDocument> findSimilar(Long documentId, int limit);
 
     List<TrainingCandidateView> listTrainingCandidates(String status, int limit);

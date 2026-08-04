@@ -22,7 +22,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     @Query("SELECT d FROM Document d WHERE d.id = :id")
     Optional<Document> findDetailedById(@Param("id") Long id);
 
-    Optional<Document> findByIdAndUserAndDeletedAtIsNull(Long id, User user);
+    Optional<Document> findByIdAndUser(Long id, User user);
 
     @Query("""
             SELECT DISTINCT d
@@ -31,7 +31,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             LEFT JOIN FETCH d.documentTags dt
             LEFT JOIN FETCH dt.tag t
             WHERE d.user = :user
-                AND d.deletedAt IS NULL
                 AND (:category IS NULL OR a.category = :category)
                 AND (:tag IS NULL OR LOWER(t.normalizedName) = LOWER(:tag))
                 AND (:level IS NULL OR a.difficulty = :level)
@@ -47,7 +46,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     );
 
     @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag"})
-    Optional<Document> findByIdAndVisibilityAndModerationStatusAndStatusAndDeletedAtIsNull(
+    Optional<Document> findByIdAndVisibilityAndModerationStatusAndStatus(
             Long id,
             Visibility visibility,
             ModerationStatus moderationStatus,
@@ -61,7 +60,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             WHERE d.visibility = :visibility
               AND d.moderationStatus = :moderationStatus
               AND d.status = :status
-              AND d.deletedAt IS NULL
               AND d.user <> :excludedUser
             ORDER BY d.createdAt DESC
             """)
@@ -74,7 +72,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     );
 
     @EntityGraph(attributePaths = {"aiAnalyse", "documentTags", "documentTags.tag"})
-    List<Document> findByIdInAndVisibilityAndModerationStatusAndStatusAndDeletedAtIsNull(
+    List<Document> findByIdInAndVisibilityAndModerationStatusAndStatus(
             Collection<Long> ids,
             Visibility visibility,
             ModerationStatus moderationStatus,

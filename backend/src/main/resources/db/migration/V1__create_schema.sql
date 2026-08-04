@@ -1,3 +1,5 @@
+USE scripto_db;
+
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(150) NOT NULL,

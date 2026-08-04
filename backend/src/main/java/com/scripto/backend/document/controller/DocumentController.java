@@ -92,4 +92,20 @@ public class DocumentController {
     ) {
         return ResponseEntity.ok(documentService.findDocuments(user, category, tag, level, status));
     }
+
+    @Operation(summary = "Excluir documento", description = "Exclui definitivamente um documento pertencente ao usuário autenticado.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Documento excluído com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
+            @ApiResponse(responseCode = "404", description = "Documento não encontrado")
+    })
+    @SecurityRequirement(name = SecurityConfigurations.SECURITY)
+    @DeleteMapping("/{documentId}")
+    public ResponseEntity<Void> deleteDocument(
+            @Parameter(description = "ID do documento", example = "42") @PathVariable Long documentId,
+            @Parameter(hidden = true) @AuthenticationPrincipal User user
+    ) {
+        documentService.deleteDocument(documentId, user);
+        return ResponseEntity.noContent().build();
+    }
 }
