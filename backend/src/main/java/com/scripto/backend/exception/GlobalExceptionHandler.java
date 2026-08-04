@@ -1,5 +1,7 @@
 package com.scripto.backend.exception;
 
+import com.scripto.backend.classification.exception.ClassificationUnavailableException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,6 +191,19 @@ public class GlobalExceptionHandler {
                 errors
         );
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+    }
+
+    @ExceptionHandler(ClassificationUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleClassificationUnavailable(
+            ClassificationUnavailableException ex, HttpServletRequest request) {
+        logger.warn("Classification unavailable on {}: {}", request.getRequestURI(), ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "Classificação Indisponível",
+                "Não foi possível classificar o documento neste momento.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
 
     // 500 - INTERNAL SERVER ERROR: Qualquer outro erro inesperado (NullPointerException, erro de conexão com banco, etc.)

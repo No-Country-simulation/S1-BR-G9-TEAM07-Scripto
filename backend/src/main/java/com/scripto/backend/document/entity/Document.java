@@ -1,7 +1,9 @@
 package com.scripto.backend.document.entity;
 
 import com.scripto.backend.aianalyse.entity.AIAnalyse;
+import com.scripto.backend.document.domain.ModerationStatus;
 import com.scripto.backend.document.domain.Status;
+import com.scripto.backend.document.domain.Visibility;
 import com.scripto.backend.tag.entity.DocumentTag;
 import com.scripto.backend.user.entity.User;
 import jakarta.persistence.*;
@@ -10,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -20,7 +23,8 @@ import java.util.List;
 @Table(name = "documents")
 @EqualsAndHashCode(of = "id")
 public class Document {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,18 +34,33 @@ public class Document {
     @Column(length = 150, nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String content;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private Status status = Status.PENDING;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Visibility visibility = Visibility.PRIVATE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "moderation_status", nullable = false)
+    private ModerationStatus moderationStatus = ModerationStatus.APPROVED;
+
+    @Column(name = "external_ai_allowed", nullable = false)
+    private boolean externalAiAllowed;
+
+    @Column(name = "training_use_allowed", nullable = false)
+    private boolean trainingUseAllowed;
 
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<DocumentTag> documentTags;
+    private List<DocumentTag> documentTags = new ArrayList<>();
 
     @OneToOne(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private AIAnalyse aiAnalyse;
+
 
     @CreationTimestamp
     @Column(name = "created_at", insertable = false, updatable = false)

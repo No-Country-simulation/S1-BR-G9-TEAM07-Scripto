@@ -188,3 +188,15 @@ env/
 
 *.pid
 *.seed
+
+# =====================================================
+# MODELOS LOCAIS DE IA / ARTEFATOS PESADOS
+# =====================================================
+backend/models/**/*.onnx
+backend/models/**/*.bin
+backend/models/**/*.safetensors
+backend/models/**/*.pt
+backend/models/**/*.pth
+backend/models/**/*.npz
+backend/models/**/*.npy
+!backend/models/**/.gitkeep
