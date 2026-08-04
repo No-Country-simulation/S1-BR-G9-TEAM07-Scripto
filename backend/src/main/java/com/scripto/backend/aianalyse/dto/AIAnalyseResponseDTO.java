@@ -21,7 +21,6 @@ public record AIAnalyseResponseDTO(
                 message = "A análise deve possuir entre 1 e 5 tags")
         List<String> tags,
 
-        @NotBlank(message = "O resumo é obrigatório")
         @Size(max = 250,
                 message = "O resumo deve possuir no máximo 250 caracteres")
         @MaxWords(value = 20,

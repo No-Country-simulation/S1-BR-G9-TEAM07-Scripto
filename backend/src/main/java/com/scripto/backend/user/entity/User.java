@@ -46,7 +46,7 @@ public class User implements UserDetails {
     @Column(name = "failed_login_attempts", nullable = false)
     private Integer failedLoginAttempts = 0;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Document> documents;
 
     @Column(name = "last_login_at")
@@ -107,5 +107,28 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return Boolean.TRUE.equals(active);
+    }
+
+    public void deactivate() {
+        this.active = false;
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void reactivate() {
+        this.active = true;
+        this.deletedAt = null;
+        this.failedLoginAttempts = 0;
+    }
+
+    public boolean canBeReactivated() {
+        if (deletedAt == null) {
+            return false;
+        }
+        return deletedAt.plusDays(30).isAfter(LocalDateTime.now());
+    }
+
+    public void registerSuccessfulLogin() {
+        this.lastLoginAt = LocalDateTime.now();
+        this.failedLoginAttempts = 0;
     }
 }

@@ -53,6 +53,7 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.GET, "/user/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/reactivate/").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

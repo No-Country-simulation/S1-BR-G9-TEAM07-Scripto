@@ -19,7 +19,7 @@ class JwtServiceTest {
     }
 
     @Test
-    void deveGerarToken() {
+    void deveGerarTokenValido() {
 
         User user = new User(
                 "João da Silva",
@@ -35,7 +35,7 @@ class JwtServiceTest {
     }
 
     @Test
-    void deveValidarToken() {
+    void deveRetornarEmailAoValidarToken() {
 
         User user = new User(
                 "João da Silva",
@@ -52,7 +52,7 @@ class JwtServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoTokenInvalido() {
+    void deveLancarExcecaoQuandoTokenForInvalido() {
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,

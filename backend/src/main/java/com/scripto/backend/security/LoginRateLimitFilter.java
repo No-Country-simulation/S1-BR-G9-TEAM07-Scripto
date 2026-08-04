@@ -26,12 +26,9 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
         if ("/user/login/".equals(request.getRequestURI()) && "POST".equalsIgnoreCase(request.getMethod())) {
             String ip = request.getRemoteAddr();
 
-            System.out.println("Requisição recebida do IP: " + ip);
-
             Bucket bucket = loginRateLimitService.resolveBucket(ip);
 
             if (!bucket.tryConsume(1)) {
-                System.out.println("Deu a cota!");
                 response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 response.setContentType("text/plain;charset=UTF-8");
                 response.getWriter().write("Muitas tentativas. Tente novamente em um minuto.");

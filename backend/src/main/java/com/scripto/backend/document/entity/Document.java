@@ -6,6 +6,8 @@ import com.scripto.backend.tag.entity.DocumentTag;
 import com.scripto.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,15 +40,19 @@ public class Document {
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<DocumentTag> documentTags;
 
-    @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<AIAnalyse> aiAnalyses;
+    @OneToOne(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private AIAnalyse aiAnalyse;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
+    @CreationTimestamp
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
+
+    public Document(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }
