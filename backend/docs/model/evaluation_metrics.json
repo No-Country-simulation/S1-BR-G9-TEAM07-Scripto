@@ -1,0 +1,490 @@
+{
+  "model_version": "scripto-model-v3",
+  "created_at": "2026-07-30T14:31:58.122018+00:00",
+  "dataset": {
+    "loaded_sources": {
+      "reference": "/content/knowledge_dataset_reference.parquet",
+      "category_training_v2": "/content/categorias_treinamento_ia_v2.csv"
+    },
+    "records_after_deduplication": 3265,
+    "modeling_records": 3260,
+    "locally_supported_categories": [
+      "Artificial Intelligence",
+      "Arts and Design",
+      "Astronomy and Space",
+      "Automation and Robotics",
+      "Backend Development",
+      "Biology",
+      "Blockchain and Distributed Systems",
+      "Business and Entrepreneurship",
+      "Chemistry",
+      "Cloud Computing",
+      "Communication and Media",
+      "Computer Hardware, Embedded Systems and IoT",
+      "Computer Networks",
+      "Cybersecurity",
+      "Data Engineering",
+      "Data Science",
+      "Data Structures and Algorithms",
+      "Databases",
+      "DevOps and Site Reliability Engineering",
+      "Earth and Environmental Sciences",
+      "Economics",
+      "Education and Learning",
+      "Food and Cooking",
+      "Frontend Development",
+      "Game Development",
+      "Geography",
+      "History",
+      "Languages and Linguistics",
+      "Law and Legal Studies",
+      "Literature",
+      "Machine Learning",
+      "Mathematics and Statistics",
+      "Medicine and Health",
+      "Mobile Development",
+      "Music",
+      "Operating Systems and IT Infrastructure",
+      "Philosophy and Ethics",
+      "Physics",
+      "Politics and Government",
+      "Programming Fundamentals",
+      "Psychology",
+      "Sociology and Anthropology",
+      "Software Architecture",
+      "Software Engineering",
+      "Software Testing and Quality Assurance",
+      "Sports and Fitness",
+      "UI/UX and Human-Computer Interaction",
+      "Web Development"
+    ],
+    "trainable_tags": 150,
+    "languages": {
+      "pt-BR": 3159,
+      "en": 106
+    }
+  },
+  "selected_hyperparameters": {
+    "category_regularization_c": 4.0,
+    "category_min_confidence": 0.3,
+    "ood_min_centroid_similarity": 0.608051598072052,
+    "tag_threshold": 0.75
+  },
+  "internal_test": {
+    "records": 490,
+    "truth_supported_records": 490,
+    "raw_category_accuracy": 0.9877551020408163,
+    "raw_category_f1_macro": 0.9665146433754203,
+    "accepted_records": 452,
+    "coverage": 0.9224489795918367,
+    "fallback_rate": 0.07755102040816331,
+    "accepted_category_precision": 0.995575221238938,
+    "difficulty_accuracy": 0.8326530612244898,
+    "difficulty_f1_macro": 0.8299455503252625,
+    "fallback_reasons": {
+      "OUT_OF_DISTRIBUTION": 9,
+      "LOW_CATEGORY_CONFIDENCE": 13,
+      "LOW_DIFFICULTY_CONFIDENCE": 1,
+      "NO_VALID_TAGS": 17
+    },
+    "tags": {
+      "classes": 150,
+      "precision_micro": 0.9928400954653938,
+      "recall_micro": 0.985781990521327,
+      "f1_micro": 0.9892984542211652,
+      "f1_macro": 0.98847513817272,
+      "rows_without_known_expected_tags": 44,
+      "expected_tag_vocabulary_coverage": 0.5268414481897628
+    }
+  },
+  "golden_combined": {
+    "records": 160,
+    "truth_supported_records": 160,
+    "raw_category_accuracy": 0.55,
+    "raw_category_f1_macro": 0.3504077417680359,
+    "accepted_records": 19,
+    "coverage": 0.11875,
+    "fallback_rate": 0.88125,
+    "accepted_category_precision": 0.7368421052631579,
+    "difficulty_accuracy": 0.35625,
+    "difficulty_f1_macro": 0.2386626445449975,
+    "fallback_reasons": {
+      "OUT_OF_DISTRIBUTION": 138,
+      "LOW_CATEGORY_CONFIDENCE": 58,
+      "NO_VALID_TAGS": 3
+    },
+    "tags": {
+      "classes": 150,
+      "precision_micro": 0.3170731707317073,
+      "recall_micro": 0.45614035087719296,
+      "f1_micro": 0.37410071942446044,
+      "f1_macro": 0.1239047619047619,
+      "rows_without_known_expected_tags": 90,
+      "expected_tag_vocabulary_coverage": 0.2446351931330472
+    }
+  },
+  "golden_by_language": {
+    "pt-BR": {
+      "records": 80,
+      "truth_supported_records": 80,
+      "raw_category_accuracy": 0.55,
+      "raw_category_f1_macro": 0.3737876299945265,
+      "accepted_records": 11,
+      "coverage": 0.1375,
+      "fallback_rate": 0.8625,
+      "accepted_category_precision": 0.8181818181818182,
+      "difficulty_accuracy": 0.3375,
+      "difficulty_f1_macro": 0.22834467120181404,
+      "fallback_reasons": {
+        "OUT_OF_DISTRIBUTION": 67,
+        "LOW_CATEGORY_CONFIDENCE": 30,
+        "NO_VALID_TAGS": 1
+      },
+      "tags": {
+        "classes": 150,
+        "precision_micro": 0.3132530120481928,
+        "recall_micro": 0.4406779661016949,
+        "f1_micro": 0.36619718309859156,
+        "f1_macro": 0.12133333333333333,
+        "rows_without_known_expected_tags": 44,
+        "expected_tag_vocabulary_coverage": 0.25213675213675213
+      }
+    },
+    "en": {
+      "records": 80,
+      "truth_supported_records": 80,
+      "raw_category_accuracy": 0.55,
+      "raw_category_f1_macro": 0.37048736703909124,
+      "accepted_records": 8,
+      "coverage": 0.1,
+      "fallback_rate": 0.9,
+      "accepted_category_precision": 0.625,
+      "difficulty_accuracy": 0.375,
+      "difficulty_f1_macro": 0.2475874070558456,
+      "fallback_reasons": {
+        "OUT_OF_DISTRIBUTION": 71,
+        "LOW_CATEGORY_CONFIDENCE": 28,
+        "NO_VALID_TAGS": 2
+      },
+      "tags": {
+        "classes": 150,
+        "precision_micro": 0.32098765432098764,
+        "recall_micro": 0.4727272727272727,
+        "f1_micro": 0.38235294117647056,
+        "f1_macro": 0.12199999999999998,
+        "rows_without_known_expected_tags": 46,
+        "expected_tag_vocabulary_coverage": 0.23706896551724138
+      }
+    }
+  },
+  "category_threshold_calibration": {
+    "selected": {
+      "threshold": 0.3,
+      "accepted_precision": 1.0,
+      "coverage": 0.943089430894309,
+      "accepted_records": 464
+    },
+    "candidates": [
+      {
+        "threshold": 0.3,
+        "accepted_precision": 1.0,
+        "coverage": 0.943089430894309,
+        "accepted_records": 464
+      },
+      {
+        "threshold": 0.32,
+        "accepted_precision": 1.0,
+        "coverage": 0.9410569105691057,
+        "accepted_records": 463
+      },
+      {
+        "threshold": 0.34,
+        "accepted_precision": 1.0,
+        "coverage": 0.9369918699186992,
+        "accepted_records": 461
+      },
+      {
+        "threshold": 0.36,
+        "accepted_precision": 1.0,
+        "coverage": 0.9308943089430894,
+        "accepted_records": 458
+      },
+      {
+        "threshold": 0.38,
+        "accepted_precision": 1.0,
+        "coverage": 0.9288617886178862,
+        "accepted_records": 457
+      },
+      {
+        "threshold": 0.4,
+        "accepted_precision": 1.0,
+        "coverage": 0.9247967479674797,
+        "accepted_records": 455
+      },
+      {
+        "threshold": 0.42,
+        "accepted_precision": 1.0,
+        "coverage": 0.9207317073170732,
+        "accepted_records": 453
+      },
+      {
+        "threshold": 0.44,
+        "accepted_precision": 1.0,
+        "coverage": 0.9085365853658537,
+        "accepted_records": 447
+      },
+      {
+        "threshold": 0.46,
+        "accepted_precision": 1.0,
+        "coverage": 0.8943089430894309,
+        "accepted_records": 440
+      },
+      {
+        "threshold": 0.48,
+        "accepted_precision": 1.0,
+        "coverage": 0.8760162601626016,
+        "accepted_records": 431
+      },
+      {
+        "threshold": 0.5,
+        "accepted_precision": 1.0,
+        "coverage": 0.8597560975609756,
+        "accepted_records": 423
+      },
+      {
+        "threshold": 0.52,
+        "accepted_precision": 1.0,
+        "coverage": 0.8455284552845529,
+        "accepted_records": 416
+      },
+      {
+        "threshold": 0.54,
+        "accepted_precision": 1.0,
+        "coverage": 0.8272357723577236,
+        "accepted_records": 407
+      },
+      {
+        "threshold": 0.56,
+        "accepted_precision": 1.0,
+        "coverage": 0.806910569105691,
+        "accepted_records": 397
+      },
+      {
+        "threshold": 0.58,
+        "accepted_precision": 1.0,
+        "coverage": 0.7642276422764228,
+        "accepted_records": 376
+      },
+      {
+        "threshold": 0.6,
+        "accepted_precision": 1.0,
+        "coverage": 0.7459349593495935,
+        "accepted_records": 367
+      },
+      {
+        "threshold": 0.62,
+        "accepted_precision": 1.0,
+        "coverage": 0.7296747967479674,
+        "accepted_records": 359
+      },
+      {
+        "threshold": 0.64,
+        "accepted_precision": 1.0,
+        "coverage": 0.709349593495935,
+        "accepted_records": 349
+      },
+      {
+        "threshold": 0.66,
+        "accepted_precision": 1.0,
+        "coverage": 0.6747967479674797,
+        "accepted_records": 332
+      },
+      {
+        "threshold": 0.68,
+        "accepted_precision": 1.0,
+        "coverage": 0.6544715447154471,
+        "accepted_records": 322
+      },
+      {
+        "threshold": 0.7,
+        "accepted_precision": 1.0,
+        "coverage": 0.6138211382113821,
+        "accepted_records": 302
+      },
+      {
+        "threshold": 0.72,
+        "accepted_precision": 1.0,
+        "coverage": 0.5589430894308943,
+        "accepted_records": 275
+      },
+      {
+        "threshold": 0.74,
+        "accepted_precision": 1.0,
+        "coverage": 0.508130081300813,
+        "accepted_records": 250
+      },
+      {
+        "threshold": 0.76,
+        "accepted_precision": 1.0,
+        "coverage": 0.46747967479674796,
+        "accepted_records": 230
+      },
+      {
+        "threshold": 0.78,
+        "accepted_precision": 1.0,
+        "coverage": 0.4329268292682927,
+        "accepted_records": 213
+      },
+      {
+        "threshold": 0.8,
+        "accepted_precision": 1.0,
+        "coverage": 0.3800813008130081,
+        "accepted_records": 187
+      },
+      {
+        "threshold": 0.82,
+        "accepted_precision": 1.0,
+        "coverage": 0.3313008130081301,
+        "accepted_records": 163
+      },
+      {
+        "threshold": 0.84,
+        "accepted_precision": 1.0,
+        "coverage": 0.2764227642276423,
+        "accepted_records": 136
+      },
+      {
+        "threshold": 0.86,
+        "accepted_precision": 1.0,
+        "coverage": 0.23983739837398374,
+        "accepted_records": 118
+      },
+      {
+        "threshold": 0.88,
+        "accepted_precision": 1.0,
+        "coverage": 0.18495934959349594,
+        "accepted_records": 91
+      },
+      {
+        "threshold": 0.9,
+        "accepted_precision": 1.0,
+        "coverage": 0.1402439024390244,
+        "accepted_records": 69
+      },
+      {
+        "threshold": 0.92,
+        "accepted_precision": 1.0,
+        "coverage": 0.08536585365853659,
+        "accepted_records": 42
+      },
+      {
+        "threshold": 0.94,
+        "accepted_precision": 1.0,
+        "coverage": 0.04065040650406504,
+        "accepted_records": 20
+      }
+    ]
+  },
+  "tag_threshold_calibration": {
+    "selected": {
+      "threshold": 0.75,
+      "f1_micro": 0.9861166203887346,
+      "precision_micro": 0.9849445324881141,
+      "recall_micro": 0.9872915011914217,
+      "rows_without_tags": 39
+    },
+    "candidates": [
+      {
+        "threshold": 0.15,
+        "f1_micro": 0.49772502472799207,
+        "precision_micro": 0.3314014752370917,
+        "recall_micro": 0.9992057188244639,
+        "rows_without_tags": 0
+      },
+      {
+        "threshold": 0.2,
+        "f1_micro": 0.6240993788819876,
+        "precision_micro": 0.45408532176428057,
+        "recall_micro": 0.9976171564733916,
+        "rows_without_tags": 2
+      },
+      {
+        "threshold": 0.25,
+        "f1_micro": 0.7220465651049152,
+        "precision_micro": 0.5657657657657658,
+        "recall_micro": 0.9976171564733916,
+        "rows_without_tags": 12
+      },
+      {
+        "threshold": 0.3,
+        "f1_micro": 0.8071979434447301,
+        "precision_micro": 0.6778197517539126,
+        "recall_micro": 0.9976171564733916,
+        "rows_without_tags": 23
+      },
+      {
+        "threshold": 0.35,
+        "f1_micro": 0.8695050190377294,
+        "precision_micro": 0.7705521472392638,
+        "recall_micro": 0.9976171564733916,
+        "rows_without_tags": 30
+      },
+      {
+        "threshold": 0.4,
+        "f1_micro": 0.905551550108147,
+        "precision_micro": 0.829042904290429,
+        "recall_micro": 0.9976171564733916,
+        "rows_without_tags": 35
+      },
+      {
+        "threshold": 0.45,
+        "f1_micro": 0.9369638194703469,
+        "precision_micro": 0.8832630098452883,
+        "recall_micro": 0.9976171564733916,
+        "rows_without_tags": 37
+      },
+      {
+        "threshold": 0.5,
+        "f1_micro": 0.9558599695585996,
+        "precision_micro": 0.9174579985390796,
+        "recall_micro": 0.9976171564733916,
+        "rows_without_tags": 37
+      },
+      {
+        "threshold": 0.55,
+        "f1_micro": 0.9687379390196835,
+        "precision_micro": 0.9421921921921922,
+        "recall_micro": 0.9968228752978554,
+        "rows_without_tags": 39
+      },
+      {
+        "threshold": 0.6,
+        "f1_micro": 0.9785407725321889,
+        "precision_micro": 0.9616564417177914,
+        "recall_micro": 0.9960285941223193,
+        "rows_without_tags": 39
+      },
+      {
+        "threshold": 0.65,
+        "f1_micro": 0.9831306394664574,
+        "precision_micro": 0.9713178294573643,
+        "recall_micro": 0.9952343129467831,
+        "rows_without_tags": 39
+      },
+      {
+        "threshold": 0.7,
+        "f1_micro": 0.9854043392504931,
+        "precision_micro": 0.9788401253918495,
+        "recall_micro": 0.9920571882446386,
+        "rows_without_tags": 39
+      },
+      {
+        "threshold": 0.75,
+        "f1_micro": 0.9861166203887346,
+        "precision_micro": 0.9849445324881141,
+        "recall_micro": 0.9872915011914217,
+        "rows_without_tags": 39
+      }
+    ]
+  }
+}

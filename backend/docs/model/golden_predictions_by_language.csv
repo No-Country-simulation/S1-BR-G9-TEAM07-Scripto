@@ -1,0 +1,161 @@
+category,difficulty,tags,language,predicted_category,category_confidence,centroid_similarity,predicted_difficulty,difficulty_confidence,fallback_reasons,accepted
+Programming Fundamentals,BEGINNER,"['python', 'variables', 'fundamentals']",pt-BR,Programming Fundamentals,0.4860841,0.3877021,BEGINNER,0.8916274,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['python', 'lists', 'tuples', 'data structures']",pt-BR,Data Science,0.45951253,0.48584095,BEGINNER,0.9995828,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,INTERMEDIATE,"['recursion', 'algorithms', 'logic']",pt-BR,Programming Fundamentals,0.3707574,0.5263231,BEGINNER,0.9988721,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,INTERMEDIATE,"['poo', 'java', 'python', 'encapsulation', 'inheritance']",pt-BR,Cybersecurity,0.22544192,0.74658597,INTERMEDIATE,0.8797002,"[""LOW_CATEGORY_CONFIDENCE""]",False
+Programming Fundamentals,INTERMEDIATE,"['functional programming', 'pure functions']",pt-BR,Programming Fundamentals,0.42770582,0.41870093,BEGINNER,0.9999987,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,ADVANCED,"['memory management', 'java', 'python', 'performance']",pt-BR,Programming Fundamentals,0.5612067,0.36215508,BEGINNER,0.99999845,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['typescript', 'javascript', 'typing']",pt-BR,Programming Fundamentals,0.93174106,0.55175495,BEGINNER,0.99999976,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,ADVANCED,"['javascript', 'closures', 'scope']",pt-BR,Programming Fundamentals,0.650588,0.40488428,BEGINNER,0.9995828,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['best practices', 'clean code', 'readability']",pt-BR,Artificial Intelligence,0.26792502,0.5466263,BEGINNER,0.9999573,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,INTERMEDIATE,"['asynchronous', 'javascript', 'promises']",pt-BR,Programming Fundamentals,0.43511498,0.6021162,BEGINNER,0.999866,"[""OUT_OF_DISTRIBUTION""]",False
+Software Architecture,BEGINNER,"['layered architecture', 'software design']",pt-BR,Software Architecture,0.45516,0.62262857,BEGINNER,0.689557,[],True
+Software Architecture,INTERMEDIATE,"['microservices', 'monolith', 'scalability']",pt-BR,Software Architecture,0.649194,0.57919353,BEGINNER,0.99941504,"[""OUT_OF_DISTRIBUTION""]",False
+Software Architecture,ADVANCED,"['solid', 'design patterns', 'object-oriented programming']",pt-BR,Software Architecture,0.30011383,0.7059921,BEGINNER,0.957717,[],True
+Software Architecture,INTERMEDIATE,"['api', 'rest', 'http', 'json']",pt-BR,Backend Development,0.82895267,0.5950781,BEGINNER,0.80872184,"[""OUT_OF_DISTRIBUTION""]",False
+Software Architecture,BEGINNER,"['mvc', 'design patterns', 'web']",pt-BR,Backend Development,0.27234825,0.5757818,ADVANCED,0.99772173,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Databases,INTERMEDIATE,"['databases', 'normalization', 'sql']",pt-BR,Databases,0.94191414,0.5614028,BEGINNER,0.9961876,"[""OUT_OF_DISTRIBUTION""]",False
+Databases,INTERMEDIATE,"['sql', 'nosql', 'mongodb']",pt-BR,Databases,0.8023743,0.6652916,BEGINNER,0.89557725,[],True
+Databases,BEGINNER,"['sql', 'primary key', 'data modeling']",pt-BR,Databases,0.26778594,0.35709774,INTERMEDIATE,0.9666312,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Databases,ADVANCED,"['indexes', 'performance', 'sql']",pt-BR,Databases,0.21419111,0.5923929,BEGINNER,0.9988721,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Databases,ADVANCED,"['acid', 'transactions', 'sql']",pt-BR,Chemistry,0.21503702,0.45614797,BEGINNER,0.9989919,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+DevOps and Site Reliability Engineering,INTERMEDIATE,"['ci cd', 'devops', 'automation']",pt-BR,DevOps and Site Reliability Engineering,0.61302257,0.55482864,INTERMEDIATE,0.91572094,"[""OUT_OF_DISTRIBUTION""]",False
+DevOps and Site Reliability Engineering,BEGINNER,"['docker', 'containers', 'devops']",pt-BR,DevOps and Site Reliability Engineering,0.6570702,0.47359574,BEGINNER,0.99999976,"[""OUT_OF_DISTRIBUTION""]",False
+DevOps and Site Reliability Engineering,ADVANCED,"['iac', 'terraform', 'cloud']",pt-BR,Backend Development,0.112075366,0.56839097,INTERMEDIATE,0.83978736,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+DevOps and Site Reliability Engineering,INTERMEDIATE,"['monitoring', 'observability', 'logs']",pt-BR,DevOps and Site Reliability Engineering,0.29731464,0.59408176,BEGINNER,0.9968058,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Cybersecurity,INTERMEDIATE,"['jwt', 'authentication', 'api', 'security']",pt-BR,Cybersecurity,0.5173067,0.5690919,BEGINNER,0.8344852,"[""OUT_OF_DISTRIBUTION""]",False
+Cybersecurity,ADVANCED,"['sql injection', 'security', 'vulnerabilities']",pt-BR,Databases,0.39576918,0.48762694,BEGINNER,0.9989009,"[""OUT_OF_DISTRIBUTION""]",False
+Cybersecurity,INTERMEDIATE,"['passwords', 'hash', 'cryptography']",pt-BR,Cybersecurity,0.2803404,0.43736067,BEGINNER,0.99999774,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Cybersecurity,BEGINNER,"['2fa', 'authentication', 'security']",pt-BR,Cybersecurity,0.57860273,0.40352142,BEGINNER,0.84783334,"[""OUT_OF_DISTRIBUTION""]",False
+Artificial Intelligence,BEGINNER,"['machine learning', 'ai', 'data']",pt-BR,Machine Learning,0.9499884,0.7373885,BEGINNER,0.9999448,[],True
+Artificial Intelligence,INTERMEDIATE,"['machine learning', 'supervised learning', 'clustering']",pt-BR,Artificial Intelligence,0.7996389,0.67241514,BEGINNER,0.61740625,[],True
+Artificial Intelligence,INTERMEDIATE,"['neural networks', 'deep learning']",pt-BR,Computer Networks,0.62281084,0.5813019,BEGINNER,0.9998363,"[""OUT_OF_DISTRIBUTION""]",False
+Artificial Intelligence,ADVANCED,"['tf idf', 'nlp', 'text classification']",pt-BR,Programming Fundamentals,0.33946565,0.48446018,BEGINNER,0.96156824,"[""OUT_OF_DISTRIBUTION""]",False
+Artificial Intelligence,ADVANCED,"['nlp', 'spacy', 'keybert', 'yake', 'transformers']",pt-BR,Artificial Intelligence,0.23256297,0.6488719,BEGINNER,0.96145475,"[""LOW_CATEGORY_CONFIDENCE""]",False
+Computer Networks,BEGINNER,"['http', 'networks', 'protocolo']",pt-BR,Web Development,0.94898725,0.7858825,INTERMEDIATE,0.5352132,[],True
+Computer Networks,INTERMEDIATE,"['tcp', 'udp', 'protocolo', 'networks']",pt-BR,Data Engineering,0.25366032,0.4122162,BEGINNER,0.99999976,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Computer Networks,BEGINNER,"['dns', 'networks', 'internet']",pt-BR,Web Development,0.1819528,0.4143177,BEGINNER,0.9966534,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Cloud Computing,BEGINNER,"['cloud', 'cloud computing']",pt-BR,Cloud Computing,0.8612636,0.7387268,BEGINNER,0.9860042,[],True
+Cloud Computing,INTERMEDIATE,"['iaas', 'paas', 'saas', 'cloud']",pt-BR,Operating Systems and IT Infrastructure,0.21418835,0.5163869,BEGINNER,0.99999845,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Cloud Computing,INTERMEDIATE,"['object storage', 'cloud', 'storage']",pt-BR,Programming Fundamentals,0.19969046,0.4009428,BEGINNER,0.99904984,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Cloud Computing,ADVANCED,"['scalability', 'cloud', 'infrastructure']",pt-BR,Cloud Computing,0.21265413,0.5176742,ADVANCED,0.97745836,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['logic', 'conditionals', 'algorithms']",pt-BR,Programming Fundamentals,0.602564,0.53918564,BEGINNER,0.9992372,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['logic', 'loops', 'algorithms']",pt-BR,Backend Development,0.55473644,0.39372587,INTERMEDIATE,0.98199975,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,ADVANCED,"['big o', 'complexity', 'algorithms']",pt-BR,Operating Systems and IT Infrastructure,0.17748708,0.5208389,INTERMEDIATE,0.71219194,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,INTERMEDIATE,"['sorting', 'algorithms', 'data structures']",pt-BR,Data Structures and Algorithms,0.30871427,0.5407626,BEGINNER,0.99996054,"[""OUT_OF_DISTRIBUTION""]",False
+Software Testing and Quality Assurance,BEGINNER,"['unit tests', 'software quality']",pt-BR,Software Testing and Quality Assurance,0.9642323,0.58176106,BEGINNER,0.99998,"[""OUT_OF_DISTRIBUTION""]",False
+Software Testing and Quality Assurance,INTERMEDIATE,"['testing pyramid', 'integration tests', 'e2e']",pt-BR,Software Testing and Quality Assurance,0.91970944,0.6217884,BEGINNER,0.9835713,[],True
+Software Testing and Quality Assurance,ADVANCED,"['tdd', 'testing', 'best practices']",pt-BR,Software Testing and Quality Assurance,0.7878096,0.5342512,INTERMEDIATE,0.8902253,"[""OUT_OF_DISTRIBUTION""]",False
+Software Testing and Quality Assurance,ADVANCED,"['mocks', 'stubs', 'testing']",pt-BR,Software Testing and Quality Assurance,0.27398202,0.46070483,BEGINNER,0.9999685,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Arts and Design,BEGINNER,"['impressionismo', 'painting', 'art history']",pt-BR,Arts and Design,0.5352749,0.5133043,BEGINNER,0.99998724,"[""OUT_OF_DISTRIBUTION""]",False
+Arts and Design,INTERMEDIATE,"['tarsila do amaral', 'modernism', 'brazilian painting']",pt-BR,Literature,0.46304432,0.45074362,BEGINNER,0.9999995,"[""OUT_OF_DISTRIBUTION""]",False
+Arts and Design,BEGINNER,"['sculpture', 'bronze', 'art technique']",pt-BR,Arts and Design,0.5905218,0.44448653,BEGINNER,0.99942917,"[""OUT_OF_DISTRIBUTION""]",False
+Arts and Design,INTERMEDIATE,"['graffiti', 'street art', 'culture']",pt-BR,Literature,0.21970376,0.53110313,BEGINNER,0.9998228,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+History,BEGINNER,"['industrial revolution', 'modern history']",pt-BR,History,0.9495451,0.6241127,BEGINNER,0.9873202,[],True
+History,INTERMEDIATE,"['cold war', 'berlin wall', 'germany']",pt-BR,History,0.35152096,0.24689168,BEGINNER,0.998872,"[""OUT_OF_DISTRIBUTION""]",False
+History,BEGINNER,"['brazilian history', 'republic', 'monarchy']",pt-BR,Politics and Government,0.2882595,0.39100483,BEGINNER,0.9285123,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+History,ADVANCED,"['age of exploration', 'colonization', 'world history']",pt-BR,History,0.4975976,0.6311947,BEGINNER,0.9998467,[],True
+Medicine and Health,BEGINNER,"['sleep', 'well-being', 'health']",pt-BR,Backend Development,0.15835309,0.29268736,BEGINNER,0.9999995,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Medicine and Health,INTERMEDIATE,"['hypertension', 'cardiovascular health']",pt-BR,Medicine and Health,0.17494372,0.23327075,BEGINNER,0.9977969,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Medicine and Health,BEGINNER,"['hydration', 'health', 'well-being']",pt-BR,Medicine and Health,0.15693444,0.31823194,BEGINNER,1.0,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Medicine and Health,INTERMEDIATE,"['mental health', 'burnout', 'workplace']",pt-BR,Psychology,0.26489437,0.5059719,BEGINNER,0.9999187,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Food and Cooking,ADVANCED,"['sous vide', 'cooking techniques']",pt-BR,Food and Cooking,0.464368,0.5564504,BEGINNER,0.99934846,"[""OUT_OF_DISTRIBUTION""]",False
+Food and Cooking,INTERMEDIATE,"['yeast', 'baking', 'pastry']",pt-BR,Food and Cooking,0.19033761,0.4098404,BEGINNER,0.9999554,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Food and Cooking,BEGINNER,"['pizza', 'italian cuisine', 'gastronomy']",pt-BR,Programming Fundamentals,0.3474785,0.29719383,BEGINNER,0.99999475,"[""OUT_OF_DISTRIBUTION""]",False
+Sports and Fitness,BEGINNER,"['soccer', 'sports rules']",pt-BR,Sports and Fitness,0.30723783,0.40176308,BEGINNER,0.99999976,"[""OUT_OF_DISTRIBUTION""]",False
+Sports and Fitness,ADVANCED,"['periodization', 'training', 'performance']",pt-BR,Backend Development,0.34174973,0.50709337,BEGINNER,0.9787678,"[""OUT_OF_DISTRIBUTION""]",False
+Sports and Fitness,INTERMEDIATE,"['olympics', 'sports history']",pt-BR,History,0.4548275,0.32848406,BEGINNER,0.99999845,"[""OUT_OF_DISTRIBUTION""]",False
+Literature,INTERMEDIATE,"['magical realism', 'literatura latino americana']",pt-BR,Programming Fundamentals,0.1979738,0.33699048,BEGINNER,0.9983701,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Literature,INTERMEDIATE,"['machado de assis', 'realism', 'literatura brasileira']",pt-BR,Literature,0.8908476,0.55907166,BEGINNER,0.99999917,"[""OUT_OF_DISTRIBUTION""]",False
+Literature,BEGINNER,"['poetry', 'free verse', 'literatura']",pt-BR,Programming Fundamentals,0.41278172,0.34746206,BEGINNER,0.99998116,"[""OUT_OF_DISTRIBUTION""]",False
+Music,BEGINNER,"['musical scale', 'music theory']",pt-BR,Music,0.835198,0.6546347,INTERMEDIATE,0.5352132,[],True
+Music,INTERMEDIATE,"['samba', 'brazilian music', 'culture']",pt-BR,Literature,0.46992096,0.41043812,BEGINNER,0.99999845,"[""OUT_OF_DISTRIBUTION""]",False
+Music,ADVANCED,"['counterpoint', 'composition', 'music theory']",pt-BR,Music,0.37218598,0.54401636,BEGINNER,0.99999857,"[""OUT_OF_DISTRIBUTION""]",False
+Geography,INTERMEDIATE,"['tectonic plates', 'geology', 'physical geography']",pt-BR,Earth and Environmental Sciences,0.48277596,0.3517694,BEGINNER,0.98665607,"[""OUT_OF_DISTRIBUTION""]",False
+Geography,BEGINNER,"['greenhouse effect', 'climate', 'environment']",pt-BR,Earth and Environmental Sciences,0.22962268,0.40648526,BEGINNER,0.9919661,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Geography,INTERMEDIATE,"['climate', 'brazilian geography']",pt-BR,Literature,0.42093253,0.43086487,BEGINNER,0.99996054,"[""OUT_OF_DISTRIBUTION""]",False
+Biology,BEGINNER,"['photosynthesis', 'botany', 'science']",pt-BR,Programming Fundamentals,0.14786942,0.34323436,BEGINNER,0.9999448,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Biology,INTERMEDIATE,"['dna', 'genetics', 'molecular biology']",pt-BR,Programming Fundamentals,0.21738793,0.34859663,BEGINNER,0.9996489,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Biology,ADVANCED,"['immune system', 'immunology']",pt-BR,Medicine and Health,0.11903295,0.35993123,BEGINNER,0.9995975,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION"", ""NO_VALID_TAGS""]",False
+Economics,BEGINNER,"['inflation', 'basic economics']",pt-BR,Economics,0.9449676,0.59286284,BEGINNER,0.9990465,"[""OUT_OF_DISTRIBUTION""]",False
+Economics,INTERMEDIATE,"['supply and demand', 'microeconomics']",pt-BR,Economics,0.24847043,0.48454684,BEGINNER,0.60561395,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['functions', 'fundamentals']",en,Programming Fundamentals,0.81491643,0.42641538,INTERMEDIATE,0.9977822,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['arrays', 'linked lists', 'data structures']",en,Programming Fundamentals,0.13848278,0.41824403,BEGINNER,0.9976299,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,INTERMEDIATE,"['recursion', 'algorithms', 'logic']",en,Programming Fundamentals,0.5133747,0.4836396,INTERMEDIATE,0.8474413,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,INTERMEDIATE,"['oop', 'java', 'python', 'encapsulation', 'inheritance']",en,Cybersecurity,0.4801119,0.65090406,INTERMEDIATE,0.992712,[],True
+Programming Fundamentals,INTERMEDIATE,"['functional programming', 'pure functions']",en,Programming Fundamentals,0.6171921,0.3834886,BEGINNER,0.9973726,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,ADVANCED,"['memory management', 'java', 'python', 'performance']",en,Programming Fundamentals,0.57857966,0.39353657,BEGINNER,0.99996054,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['typescript', 'javascript', 'typing']",en,Programming Fundamentals,0.92143136,0.52608985,BEGINNER,0.99999475,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,ADVANCED,"['javascript', 'closures', 'scope']",en,Programming Fundamentals,0.62505436,0.36748925,INTERMEDIATE,0.99995697,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['best practices', 'clean code', 'readability']",en,Artificial Intelligence,0.32891297,0.47768778,BEGINNER,1.0,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,INTERMEDIATE,"['asynchronous', 'javascript', 'promises']",en,Programming Fundamentals,0.54366267,0.48614544,BEGINNER,0.9999974,"[""OUT_OF_DISTRIBUTION""]",False
+Software Architecture,BEGINNER,"['layered architecture', 'software design']",en,Software Architecture,0.49501678,0.58942485,BEGINNER,0.9993886,"[""OUT_OF_DISTRIBUTION""]",False
+Software Architecture,INTERMEDIATE,"['microservices', 'monolith', 'scalability']",en,Software Architecture,0.59946716,0.50636923,BEGINNER,0.97772837,"[""OUT_OF_DISTRIBUTION""]",False
+Software Architecture,ADVANCED,"['solid', 'design patterns', 'object oriented design']",en,Software Architecture,0.15362571,0.61533344,BEGINNER,0.5033288,"[""LOW_CATEGORY_CONFIDENCE""]",False
+Software Architecture,INTERMEDIATE,"['api', 'rest', 'http', 'json']",en,Backend Development,0.8457895,0.6015814,BEGINNER,0.9793352,"[""OUT_OF_DISTRIBUTION""]",False
+Software Architecture,BEGINNER,"['mvc', 'design patterns', 'web']",en,Frontend Development,0.28965726,0.5720353,ADVANCED,0.9774629,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Databases,INTERMEDIATE,"['databases', 'normalization', 'sql']",en,Databases,0.9519982,0.5408064,BEGINNER,0.9999889,"[""OUT_OF_DISTRIBUTION""]",False
+Databases,INTERMEDIATE,"['sql', 'nosql', 'mongodb']",en,Databases,0.8677873,0.64612204,BEGINNER,0.84956014,[],True
+Databases,BEGINNER,"['sql', 'primary key', 'data modeling']",en,Databases,0.31876117,0.35391322,INTERMEDIATE,0.9132423,"[""OUT_OF_DISTRIBUTION""]",False
+Databases,ADVANCED,"['indexes', 'performance', 'sql']",en,Databases,0.32928836,0.5264298,BEGINNER,0.99973327,"[""OUT_OF_DISTRIBUTION""]",False
+Databases,ADVANCED,"['acid', 'transactions', 'sql']",en,Databases,0.19095477,0.5162355,BEGINNER,0.9995067,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+DevOps and Site Reliability Engineering,INTERMEDIATE,"['ci cd', 'devops', 'automation']",en,DevOps and Site Reliability Engineering,0.5297697,0.47836286,INTERMEDIATE,0.70720667,"[""OUT_OF_DISTRIBUTION""]",False
+DevOps and Site Reliability Engineering,BEGINNER,"['docker', 'containers', 'devops']",en,DevOps and Site Reliability Engineering,0.58171266,0.43225604,BEGINNER,1.0,"[""OUT_OF_DISTRIBUTION""]",False
+DevOps and Site Reliability Engineering,ADVANCED,"['iac', 'terraform', 'cloud']",en,Programming Fundamentals,0.105433926,0.52518785,BEGINNER,0.97558683,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+DevOps and Site Reliability Engineering,INTERMEDIATE,"['monitoring', 'observability', 'logs']",en,Backend Development,0.20879441,0.6069702,BEGINNER,0.9999281,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Cybersecurity,INTERMEDIATE,"['jwt', 'authentication', 'api', 'security']",en,Cybersecurity,0.5212904,0.55359846,INTERMEDIATE,0.5465759,"[""OUT_OF_DISTRIBUTION""]",False
+Cybersecurity,ADVANCED,"['sql injection', 'security', 'vulnerabilities']",en,Databases,0.42570123,0.4577374,BEGINNER,0.9999175,"[""OUT_OF_DISTRIBUTION""]",False
+Cybersecurity,INTERMEDIATE,"['passwords', 'hashing', 'cryptography']",en,Cybersecurity,0.51768047,0.3844257,BEGINNER,0.99999964,"[""OUT_OF_DISTRIBUTION""]",False
+Cybersecurity,BEGINNER,"['2fa', 'authentication', 'security']",en,Cybersecurity,0.6264849,0.36824107,BEGINNER,0.9775818,"[""OUT_OF_DISTRIBUTION""]",False
+Artificial Intelligence,BEGINNER,"['machine learning', 'ai', 'data']",en,Machine Learning,0.9488442,0.7256012,BEGINNER,0.99991477,[],True
+Artificial Intelligence,INTERMEDIATE,"['machine learning', 'supervised learning', 'clustering']",en,Artificial Intelligence,0.83883286,0.6390322,BEGINNER,0.7777256,[],True
+Artificial Intelligence,INTERMEDIATE,"['neural networks', 'deep learning']",en,Computer Networks,0.43570882,0.5501493,BEGINNER,0.99989736,"[""OUT_OF_DISTRIBUTION""]",False
+Artificial Intelligence,ADVANCED,"['tf idf', 'nlp', 'text classification']",en,Programming Fundamentals,0.3198708,0.48671514,BEGINNER,0.8287909,"[""OUT_OF_DISTRIBUTION""]",False
+Artificial Intelligence,ADVANCED,"['nlp', 'spacy', 'keybert', 'yake', 'transformers']",en,Programming Fundamentals,0.20387952,0.5537265,BEGINNER,0.9814858,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Computer Networks,BEGINNER,"['http', 'networks', 'protocol']",en,Web Development,0.9566815,0.77936554,BEGINNER,0.9961876,[],True
+Computer Networks,INTERMEDIATE,"['tcp', 'udp', 'protocol', 'networks']",en,Data Engineering,0.23525186,0.39304054,BEGINNER,0.99999726,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Computer Networks,BEGINNER,"['dns', 'networks', 'internet']",en,Web Development,0.13131465,0.41295987,BEGINNER,0.98214555,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Cloud Computing,BEGINNER,"['cloud', 'cloud computing']",en,Cloud Computing,0.875997,0.7490519,BEGINNER,0.99991107,[],True
+Cloud Computing,INTERMEDIATE,"['iaas', 'paas', 'saas', 'cloud']",en,Operating Systems and IT Infrastructure,0.18222007,0.49747705,BEGINNER,0.9999918,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Cloud Computing,INTERMEDIATE,"['object storage', 'cloud', 'storage']",en,Programming Fundamentals,0.18305849,0.39362133,BEGINNER,0.9997825,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Cloud Computing,ADVANCED,"['scalability', 'cloud', 'infrastructure']",en,Cloud Computing,0.248513,0.5200851,BEGINNER,0.61740625,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['logic', 'conditionals', 'algorithms']",en,Programming Fundamentals,0.7120697,0.41699392,BEGINNER,0.9995548,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,BEGINNER,"['logic', 'loops', 'algorithms']",en,Backend Development,0.43737075,0.33556223,INTERMEDIATE,0.69005436,"[""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,ADVANCED,"['big o', 'complexity', 'algorithms']",en,Programming Fundamentals,0.25337207,0.4835279,BEGINNER,0.87728196,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Programming Fundamentals,INTERMEDIATE,"['sorting', 'algorithms', 'data structures']",en,Data Science,0.20138174,0.43101233,BEGINNER,0.9998116,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Software Testing and Quality Assurance,BEGINNER,"['unit tests', 'software quality']",en,Software Testing and Quality Assurance,0.8971614,0.5914399,BEGINNER,0.7446982,"[""OUT_OF_DISTRIBUTION""]",False
+Software Testing and Quality Assurance,INTERMEDIATE,"['testing pyramid', 'integration tests', 'e2e']",en,Software Testing and Quality Assurance,0.83144546,0.6147023,BEGINNER,0.992942,[],True
+Software Testing and Quality Assurance,ADVANCED,"['tdd', 'testing', 'best practices']",en,Software Testing and Quality Assurance,0.7249404,0.50979644,INTERMEDIATE,0.83080727,"[""OUT_OF_DISTRIBUTION""]",False
+Software Testing and Quality Assurance,ADVANCED,"['mocks', 'stubs', 'testing']",en,Programming Fundamentals,0.24139427,0.43090522,BEGINNER,0.99999845,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Arts and Design,BEGINNER,"['impressionism', 'painting', 'art history']",en,Arts and Design,0.48410577,0.53642035,BEGINNER,0.99999917,"[""OUT_OF_DISTRIBUTION""]",False
+Arts and Design,INTERMEDIATE,"['frida kahlo', 'mexican art', 'self portraits']",en,Arts and Design,0.47958678,0.3838361,BEGINNER,0.9999995,"[""OUT_OF_DISTRIBUTION""]",False
+Arts and Design,BEGINNER,"['sculpture', 'bronze', 'art technique']",en,Arts and Design,0.5342916,0.39302552,BEGINNER,0.99997497,"[""OUT_OF_DISTRIBUTION""]",False
+Arts and Design,INTERMEDIATE,"['graffiti', 'street art', 'culture']",en,Programming Fundamentals,0.20179869,0.3714947,BEGINNER,0.9970772,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+History,BEGINNER,"['industrial revolution', 'modern history']",en,History,0.91058856,0.59412724,BEGINNER,0.97682023,"[""OUT_OF_DISTRIBUTION""]",False
+History,INTERMEDIATE,"['cold war', 'berlin wall', 'germany']",en,History,0.24679993,0.23147893,INTERMEDIATE,0.86021316,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+History,BEGINNER,"['magna carta', 'english history', 'monarchy']",en,History,0.48139393,0.32425243,BEGINNER,0.9390412,"[""OUT_OF_DISTRIBUTION""]",False
+History,ADVANCED,"['age of exploration', 'colonization', 'world history']",en,History,0.7062922,0.5425782,BEGINNER,0.9921366,"[""OUT_OF_DISTRIBUTION""]",False
+Medicine and Health,BEGINNER,"['sleep', 'well being', 'health']",en,Backend Development,0.14377289,0.25656554,BEGINNER,0.9999691,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Medicine and Health,INTERMEDIATE,"['hypertension', 'cardiovascular health']",en,Physics,0.14511931,0.23470263,BEGINNER,0.9986985,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Medicine and Health,BEGINNER,"['hydration', 'health', 'well being']",en,Programming Fundamentals,0.13396291,0.3168701,BEGINNER,1.0,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION"", ""NO_VALID_TAGS""]",False
+Medicine and Health,INTERMEDIATE,"['mental health', 'burnout', 'workplace']",en,Psychology,0.2762565,0.4802323,BEGINNER,1.0,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Food and Cooking,ADVANCED,"['sous vide', 'cooking techniques']",en,Food and Cooking,0.44546026,0.49261904,BEGINNER,0.99904984,"[""OUT_OF_DISTRIBUTION""]",False
+Food and Cooking,INTERMEDIATE,"['yeast', 'baking', 'pastry']",en,Programming Fundamentals,0.48940766,0.3919637,BEGINNER,0.99999917,"[""OUT_OF_DISTRIBUTION""]",False
+Food and Cooking,BEGINNER,"['pizza', 'italian cuisine', 'gastronomy']",en,Programming Fundamentals,0.44163623,0.26070136,BEGINNER,0.9999999,"[""OUT_OF_DISTRIBUTION""]",False
+Sports and Fitness,BEGINNER,"['soccer', 'sports rules']",en,Sports and Fitness,0.29525667,0.39453846,BEGINNER,0.99999845,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Sports and Fitness,ADVANCED,"['periodization', 'training', 'performance']",en,Sports and Fitness,0.23089202,0.41536117,BEGINNER,0.99910164,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Sports and Fitness,INTERMEDIATE,"['olympics', 'sports history']",en,History,0.35733178,0.3619746,BEGINNER,0.9999957,"[""OUT_OF_DISTRIBUTION""]",False
+Literature,INTERMEDIATE,"['magical realism', 'latin american literature']",en,Programming Fundamentals,0.26422185,0.29835764,BEGINNER,0.99998116,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Literature,INTERMEDIATE,"['jane austen', 'novel of manners', 'english literature']",en,Programming Fundamentals,0.20098348,0.29258803,BEGINNER,0.99999845,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Literature,BEGINNER,"['poetry', 'free verse', 'literature']",en,Programming Fundamentals,0.62259,0.25543183,BEGINNER,0.99942917,"[""OUT_OF_DISTRIBUTION""]",False
+Music,BEGINNER,"['musical scale', 'music theory']",en,Music,0.810369,0.630912,BEGINNER,0.9971431,[],True
+Music,INTERMEDIATE,"['jazz', 'american music', 'culture']",en,Music,0.46076474,0.4184535,BEGINNER,0.99998033,"[""OUT_OF_DISTRIBUTION""]",False
+Music,ADVANCED,"['counterpoint', 'composition', 'music theory']",en,Frontend Development,0.27397546,0.5347463,BEGINNER,0.99999976,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False
+Geography,INTERMEDIATE,"['tectonic plates', 'geology', 'physical geography']",en,Earth and Environmental Sciences,0.38985914,0.30318895,BEGINNER,0.9988721,"[""OUT_OF_DISTRIBUTION""]",False
+Geography,BEGINNER,"['greenhouse effect', 'climate', 'environment']",en,Earth and Environmental Sciences,0.35744777,0.41718113,BEGINNER,0.9998621,"[""OUT_OF_DISTRIBUTION""]",False
+Geography,INTERMEDIATE,"['climate', 'us geography']",en,Geography,0.4048294,0.3804797,BEGINNER,0.9995975,"[""OUT_OF_DISTRIBUTION""]",False
+Biology,BEGINNER,"['photosynthesis', 'botany', 'science']",en,Programming Fundamentals,0.32285035,0.27256492,BEGINNER,0.99997175,"[""OUT_OF_DISTRIBUTION""]",False
+Biology,INTERMEDIATE,"['dna', 'genetics', 'molecular biology']",en,Programming Fundamentals,0.30279765,0.35363853,BEGINNER,0.9989901,"[""OUT_OF_DISTRIBUTION""]",False
+Biology,ADVANCED,"['immune system', 'immunology']",en,Programming Fundamentals,0.13386501,0.35265654,BEGINNER,0.9991159,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION"", ""NO_VALID_TAGS""]",False
+Economics,BEGINNER,"['inflation', 'basic economics']",en,Economics,0.9297574,0.5701772,BEGINNER,0.99045724,"[""OUT_OF_DISTRIBUTION""]",False
+Economics,INTERMEDIATE,"['supply and demand', 'microeconomics']",en,Economics,0.15036123,0.48450112,BEGINNER,0.71886104,"[""LOW_CATEGORY_CONFIDENCE"", ""OUT_OF_DISTRIBUTION""]",False

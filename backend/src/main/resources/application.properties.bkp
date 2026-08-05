@@ -1,0 +1,24 @@
+spring.application.name=backend
+
+spring.config.import=optional:file:.env[.properties]
+
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3307}/${MYSQL_DATABASE:scripto_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:${MYSQL_USER}}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:${MYSQL_PASSWORD}}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.open-in-view=false
+spring.jpa.properties.hibernate.jdbc.time_zone=UTC
+# Conversão do Camel Case para Snake Case
+spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+
+spring.flyway.enabled=true
+spring.flyway.locations=classpath:db/migration
+spring.flyway.validate-on-migrate=true
+
+server.port=${SERVER_PORT:8080}
+
+management.endpoints.web.exposure.include=health,info
+management.endpoint.health.probes.enabled=true

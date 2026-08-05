@@ -1,0 +1,50 @@
+category,training_examples,locally_supported,minimum_required
+Programming Fundamentals,310,True,5
+Data Structures and Algorithms,5,True,5
+Software Engineering,95,True,5
+Software Architecture,155,True,5
+Web Development,35,True,5
+Backend Development,185,True,5
+Frontend Development,155,True,5
+Mobile Development,5,True,5
+Game Development,5,True,5
+Databases,215,True,5
+Data Engineering,275,True,5
+Data Science,125,True,5
+Artificial Intelligence,245,True,5
+Machine Learning,5,True,5
+Cybersecurity,130,True,5
+Computer Networks,5,True,5
+Cloud Computing,5,True,5
+DevOps and Site Reliability Engineering,125,True,5
+Operating Systems and IT Infrastructure,40,True,5
+"Computer Hardware, Embedded Systems and IoT",5,True,5
+Automation and Robotics,5,True,5
+Software Testing and Quality Assurance,100,True,5
+UI/UX and Human-Computer Interaction,5,True,5
+Blockchain and Distributed Systems,5,True,5
+Mathematics and Statistics,125,True,5
+Physics,95,True,5
+Chemistry,65,True,5
+Biology,95,True,5
+Earth and Environmental Sciences,65,True,5
+Astronomy and Space,65,True,5
+Medicine and Health,35,True,5
+Psychology,35,True,5
+Education and Learning,5,True,5
+History,95,True,5
+Geography,65,True,5
+Politics and Government,5,True,5
+Law and Legal Studies,5,True,5
+Economics,95,True,5
+Business and Entrepreneurship,5,True,5
+Communication and Media,5,True,5
+Sociology and Anthropology,5,True,5
+Philosophy and Ethics,35,True,5
+Languages and Linguistics,5,True,5
+Literature,35,True,5
+Arts and Design,35,True,5
+Music,35,True,5
+Sports and Fitness,5,True,5
+Food and Cooking,5,True,5
+Other,5,False,5

@@ -19,6 +19,8 @@ target/
 *.iml
 *.ipr
 .env
+.env.*
+!.env.example
 
 ### NetBeans ###
 /nbproject/private/
@@ -41,7 +43,6 @@ log/
 spring.log
 
 ### Security & LGPD - Sensitive Files ###
-.env
 .env.local
 .env.*.local
 *.pem
@@ -94,3 +95,8 @@ docker/data/
 *.temp
 *.bak
 *.cache
+
+### Local AI Model Artifacts ###
+models/*
+!models/README.md
+*.onnx

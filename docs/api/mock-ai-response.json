@@ -1,0 +1,11 @@
+{
+  "category": "Backend",
+  "probability": 0.95,
+  "tags": [
+    "Java",
+    "Spring Boot",
+    "REST API"
+  ],
+  "summary": "Documento apresenta conceitos básicos de Spring Boot para desenvolvimento de APIs REST.",
+  "knowledgeLevel": "INTERMEDIATE"
+}

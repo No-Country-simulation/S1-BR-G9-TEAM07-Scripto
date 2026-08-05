@@ -1,68 +1,261 @@
-# Scripto Backend
+# 📚 SCRIPTO
 
-Projeto base com:
+> **Onde suas leituras se organizam.**
+
+O **SCRIPTO** é uma plataforma desenvolvida para organizar conteúdos textuais desestruturados, permitindo que estudantes e demais usuários centralizem artigos, documentos e anotações em um único ambiente.
+
+O projeto é dividido em duas aplicações independentes:
+
+- **Frontend** — Interface web da plataforma.
+- **Backend** — API responsável pelas regras de negócio, autenticação e persistência de dados.
+
+---
+
+# 📦 Repositórios
+
+- 🎨 Frontend (React)
+- ⚙️ Backend (Spring Boot)
+
+---
+
+# 🎨 Frontend
+
+Interface web moderna responsável pela experiência do usuário.
+
+## ✨ Funcionalidades
+
+- Landing Page
+- Login e Cadastro
+- Biblioteca pública
+- Biblioteca pessoal
+- Upload de documentos
+- Perfil do usuário
+- Área administrativa
+- Dashboard administrativo
+- Gerenciamento de usuários
+- Gerenciamento de documentos
+- Gerenciamento de denúncias
+- Tratamento de páginas de erro
+
+---
+
+## 🛠️ Tecnologias
+
+- React
+- Vite
+- TypeScript
+- TanStack Router
+- Tailwind CSS
+
+---
+
+## 📁 Estrutura
+
+```text
+src/
+├── components/
+├── routes/
+├── services/
+├── lib/
+├── hooks/
+├── assets/
+└── styles/
+
+public/
+```
+
+---
+
+## 🚀 Executando o projeto
+
+### Pré-requisitos
+
+- Node.js 18+
+- npm
+
+### Instalação
+
+```bash
+npm install
+```
+
+### Desenvolvimento
+
+```bash
+npm run dev
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+### Preview
+
+```bash
+npm run preview
+```
+
+---
+
+# ⚙️ Backend
+
+API REST responsável pelas regras de negócio, autenticação, gerenciamento de usuários, documentos e integração com banco de dados.
+
+---
+
+## 🛠️ Tecnologias
 
 - Java 21
-- Maven
 - Spring Boot 3.5.16
+- Maven
 - MySQL 8.4
 - Flyway
-- phpMyAdmin
 - Docker Compose
+- phpMyAdmin
 
-## Desenvolvimento recomendado
+---
 
-Certifique-se de estar no diretório correto:
+## 📁 Estrutura
+
+```text
+backend/
+├── src/
+├── docker-compose.yml
+├── pom.xml
+├── .env.example
+└── README.md
+```
+
+---
+
+## 🚀 Executando o projeto
+
+### 1. Acesse o diretório
 
 ```bash
 cd backend
 ```
 
-Suba seu docker com MySQL:
+### 2. Inicie o banco de dados
 
 ```bash
 docker compose up -d
 ```
 
-Depois execute o Spring Boot pela IDE.
+### 3. Execute a aplicação
+
+Pela IDE ou utilizando o Maven Wrapper:
 
 ```bash
 ./mvnw -DskipTests spring-boot:run
 ```
 
-A aplicação acessará:
+---
+
+## 🗄️ Banco de Dados
+
+A aplicação utiliza MySQL executando via Docker.
+
+Conexão:
 
 ```text
-jdbc:mysql://localhost:3307/scripto_db
+Host: localhost
+Port: 3307
+Database: scripto_db
 ```
 
-## MySQL e phpMyAdmin
+---
 
-Acesse o phpMyAdmin em:
+## 🖥️ phpMyAdmin
+
+Disponível em:
 
 ```text
 http://localhost:8081
 ```
 
-## Encerrar os contêineres
+---
 
-Sem apagar o banco:
+## 🧬 Migrations
+
+O projeto utiliza **Flyway** para versionamento do banco de dados.
+
+Inclui:
+
+- Estrutura inicial das tabelas
+- Dados mock para desenvolvimento
+
+---
+
+## 🛑 Encerrando os contêineres
+
+Sem remover os dados:
 
 ```bash
 docker compose down
 ```
 
-Apagando também o volume do MySQL:
+Removendo também o volume do banco:
 
 ```bash
 docker compose down --volumes
 ```
 
-## Migrations
+---
 
-O projeto já conta com um banco de dados e uma migration de inserção mock
+## 🔒 Segurança
 
-## Segurança
+- O arquivo `.env` é destinado apenas ao desenvolvimento local.
+- Dados sensíveis permanecem fora do controle de versão através do `.gitignore`.
+- Nunca utilize credenciais de desenvolvimento em ambientes de produção.
 
-O arquivo `.env` é apenas para desenvolvimento local e está ignorado pelo Git.
-Não use as senhas de desenvolvimento em produção, por mais que o `.gitignore` esteja configurado, certifique-se de não exibir nenhum dado sensível.
+---
+
+# 🏗️ Arquitetura
+
+```text
+             Frontend (React)
+                     │
+          HTTP / REST API
+                     │
+          Spring Boot Backend
+                     │
+             Spring Data JPA
+                     │
+                 MySQL 8.4
+```
+
+---
+
+# 🤝 Como contribuir
+
+1. Faça um Fork do projeto.
+2. Crie uma branch para sua feature.
+
+```bash
+git checkout -b feature/minha-feature
+```
+
+3. Realize suas alterações.
+
+4. Faça o commit.
+
+```bash
+git commit -m "feat: adiciona nova funcionalidade"
+```
+
+5. Envie para seu repositório.
+
+```bash
+git push origin feature/minha-feature
+```
+
+6. Abra um Pull Request.
+
+---
+
+# 📄 Licença
+
+Este projeto foi desenvolvido para fins acadêmicos e de aprendizado durante o desenvolvimento da plataforma **SCRIPTO**.
