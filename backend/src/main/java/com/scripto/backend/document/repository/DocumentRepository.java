@@ -6,11 +6,11 @@ import com.scripto.backend.document.domain.Status;
 import com.scripto.backend.document.domain.Visibility;
 import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.user.entity.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.List;
@@ -51,6 +51,30 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             Visibility visibility,
             ModerationStatus moderationStatus,
             Status status
+    );
+
+    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag"})
+    @Query("""
+            SELECT DISTINCT d
+            FROM Document d
+            LEFT JOIN FETCH d.aiAnalyse a
+            LEFT JOIN FETCH d.documentTags dt
+            LEFT JOIN FETCH dt.tag t
+            WHERE d.visibility = 'PUBLIC'
+              AND d.moderationStatus = 'APPROVED'
+              AND d.status = 'PROCESSED'
+              AND d.user <> :excludedUser
+              AND (:category IS NULL OR a.category = :category)
+              AND (:tag IS NULL OR LOWER(t.normalizedName) = LOWER(:tag))
+              AND (:difficulty IS NULL OR a.difficulty = :difficulty)
+            ORDER BY d.createdAt DESC
+            """)
+    List<Document> findPublicDocuments(
+            @Param("category") String category,
+            @Param("tag") String tag,
+            @Param("difficulty") Level difficulty,
+            @Param("excludedUser") User excludedUser,
+            Pageable pageable
     );
 
     @EntityGraph(attributePaths = {"user", "aiAnalyse"})
