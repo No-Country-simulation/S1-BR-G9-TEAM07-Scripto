@@ -1,55 +1,97 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/FormField";
+import { LoadingButton } from "@/components/LoadingButton";
+import { PasswordField } from "@/components/PasswordField";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ApiError } from "@/services/api";
+import { loginUser } from "@/services/auth.service";
+import { friendlyError } from "@/lib/errors";
 import { useI18n } from "@/lib/i18n";
-import { login } from "@/services/auth.service";
+import { isValidEmail } from "@/lib/validation";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
 function LoginPage() {
   const { t } = useI18n();
   const router = useRouter();
-  const [email, setEmail] = useState(""); const [password, setPassword] = useState("");
-  const [show, setShow] = useState(false); const [err, setErr] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [touched, setTouched] = useState({ email: false, password: false });
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault(); setErr(null); setLoading(true);
+  const errors = useMemo(() => ({
+    email: !email.trim() ? t("auth.validation.required") : !isValidEmail(email) ? t("auth.validation.email") : "",
+    password: !password ? t("auth.validation.required") : "",
+  }), [email, password, t]);
+  const valid = !errors.email && !errors.password;
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setTouched({ email: true, password: true });
+    if (!valid) return;
+    setError(null);
+    setLoading(true);
     try {
-      const u = await login(email, password);
-      if (u.deletionScheduledAt) router.navigate({ to: "/account-suspended" });
-      else router.navigate({ to: "/app" });
-    } catch (e) { setErr((e as Error).message); } finally { setLoading(false); }
+      await loginUser({ email: email.trim().toLowerCase(), password });
+      await router.navigate({ to: "/app" });
+    } catch (currentError) {
+      if (currentError instanceof ApiError && currentError.status === 403) {
+        toast.error(friendlyError(currentError, t));
+        await router.navigate({ to: "/account-suspended" });
+        return;
+      }
+      if (currentError instanceof ApiError && (currentError.status === 401 || currentError.status === 404)) {
+        setError(t("auth.login.invalid"));
+        return;
+      }
+      setError(friendlyError(currentError, t));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <AuthShell
-      title={t("auth.login.title")} subtitle={t("auth.login.subtitle")}
-      footer={<>{t("auth.no")} <Link to="/register" className="font-medium text-vinho hover:underline">{t("nav.register")}</Link></>}
+      title={t("auth.login.title")}
+      subtitle={t("auth.login.subtitle")}
+      footer={<>{t("auth.login.noAccount")} <Link to="/register" className="font-semibold text-vinho underline-offset-4 hover:underline">{t("nav.register")}</Link></>}
     >
-      <form onSubmit={submit} className="space-y-4">
-        <div>
-          <Label htmlFor="email">{t("auth.email")}</Label>
-          <Input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} className="mt-1" />
+      <form onSubmit={submit} className="space-y-4" noValidate>
+        <FormField id="email" label={t("auth.email")} error={touched.email ? errors.email : undefined} required>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onBlur={() => setTouched((current) => ({ ...current, email: true }))}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={Boolean(touched.email && errors.email) || undefined}
+            aria-describedby={touched.email && errors.email ? "email-error" : undefined}
+          />
+        </FormField>
+        <FormField id="password" label={t("auth.password")} error={touched.password ? errors.password : undefined} required>
+          <PasswordField
+            id="password"
+            autoComplete="current-password"
+            value={password}
+            onBlur={() => setTouched((current) => ({ ...current, password: true }))}
+            onChange={(event) => setPassword(event.target.value)}
+            error={Boolean(touched.password && errors.password)}
+            aria-describedby={touched.password && errors.password ? "password-error" : undefined}
+          />
+        </FormField>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <Link to="/reset-password" className="font-medium text-vinho underline-offset-4 hover:underline">{t("auth.login.forgot")}</Link>
+          <span className="text-muted-foreground">{t("auth.login.suspended")} <Link to="/account-suspended" className="font-medium text-vinho underline-offset-4 hover:underline">{t("auth.login.reactivate")}</Link></span>
         </div>
-        <div>
-          <Label htmlFor="password">{t("auth.password")}</Label>
-          <div className="relative mt-1">
-            <Input id="password" type={show ? "text" : "password"} required value={password} onChange={e => setPassword(e.target.value)} />
-            <button type="button" onClick={() => setShow(s => !s)} aria-label="Mostrar senha"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground">
-              {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
-        {err && <p role="alert" className="text-sm text-vinho">{err}</p>}
-        <Button type="submit" disabled={loading} className="w-full bg-vinho text-vinho-foreground hover:bg-vinho/90">
-          {loading ? "Entrando…" : t("auth.submit.login")}
-        </Button>
+        {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
+        <LoadingButton type="submit" loading={loading} loadingLabel={t("auth.login.loading")} disabled={!valid} className="w-full bg-vinho text-vinho-foreground hover:bg-vinho/90">
+          {t("auth.login.submit")}
+        </LoadingButton>
       </form>
     </AuthShell>
   );

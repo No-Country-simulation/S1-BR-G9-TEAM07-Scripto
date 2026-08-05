@@ -1,111 +1,94 @@
-import { api } from "./api";
+import { ApiError, apiRequest } from "./api";
+import { clearAuthSession, currentSession, saveAccessToken, saveAuthSession, type AuthSession } from "./session";
+import { getCurrentUser, type UserViewDTO } from "./user.service";
 
-export type User = {
-  id: string;
-  fullName: string;
+export type LoginDTO = {
   email: string;
-  cpf: string; // apenas dígitos
-  role: "user" | "admin";
-  deletionScheduledAt?: string | null;
+  password: string;
 };
 
-const CURRENT_KEY = "scripto-current-user";
+export type TokenJWTDTO = {
+  token: string;
+};
 
-export async function register(input: { name: string; email: string; cpf: string; password: string }) {
+export type UserRegisterDTO = {
+  cpf: string;
+  fullName: string;
+  email: string;
+  password: string;
+};
+
+export type UserReactivateAccountDTO = {
+  email: string;
+  password: string;
+};
+
+async function authenticate(request: LoginDTO): Promise<TokenJWTDTO> {
+  return apiRequest<TokenJWTDTO>({ method: "POST", url: "/user/login", data: request });
+}
+
+export async function registerUser(request: UserRegisterDTO): Promise<AuthSession> {
+  // O cadastro é público. Limpa qualquer JWT antigo para impedir que o
+  // SecurityFilter do backend tente validar um token inválido nessa rota.
+  clearAuthSession();
+
+  await apiRequest<void>({
+    method: "POST",
+    url: "/user/register",
+    data: {
+      ...request,
+      cpf: request.cpf.replace(/\D/g, ""),
+      fullName: request.fullName.trim(),
+      email: request.email.trim().toLowerCase(),
+    },
+  });
+
+  return loginUser({ email: request.email, password: request.password });
+}
+
+export async function loginUser(request: LoginDTO): Promise<AuthSession> {
+  const tokenResponse = await authenticate(request);
+  saveAccessToken(tokenResponse.token);
+
   try {
-    // Backend expects fullName, not name
-    const response = await api.post("/user/register", {
-      cpf: input.cpf.replace(/\D/g, ""),
-      fullName: input.name,
-      email: input.email,
-      password: input.password,
-    });
-
-    // After successful registration, automatically login to get token
-    const loginResponse = await login(input.email, input.password);
-    return loginResponse;
-  } catch (error: any) {
-    if (error.response?.status === 400) {
-      throw new Error("E-mail já cadastrado.");
-    } else if (error.response?.status === 422) {
-      const errors = error.response?.data?.errors;
-      if (errors?.email) throw new Error(errors.email);
-      if (errors?.cpf) throw new Error(errors.cpf);
-      if (errors?.password) throw new Error(errors.password);
-      throw new Error("Dados inválidos. Verifique os campos.");
-    }
-    throw new Error("Erro ao criar conta. Tente novamente.");
+    const user = await getCurrentUser();
+    return saveAuthSession(tokenResponse.token, { user, access: "USER" });
+  } catch (error) {
+    clearAuthSession();
+    throw error;
   }
 }
 
-export async function login(email: string, password: string) {
+export async function loginAdmin(request: LoginDTO): Promise<AuthSession> {
+  const tokenResponse = await authenticate(request);
+  saveAccessToken(tokenResponse.token);
+
   try {
-    const response = await api.post("/user/login", {
-      email,
-      password,
-    });
-
-    const token = response.data.token;
-    if (!token) throw new Error("Token não retornado pelo servidor.");
-    localStorage.setItem("scripto-token", token);
-
-    // Store user info temporarily (will be fetched from backend in future)
-    // For now, we'll create a minimal user object from the email
-    const user: User = {
-      id: "temp-id", // Will be replaced with actual ID from backend
-      fullName: "Usuário", // Will be fetched from backend
-      email,
-      cpf: "", // Will be fetched from backend
-      role: "user",
-      deletionScheduledAt: null,
-    };
-
-    localStorage.setItem(CURRENT_KEY, JSON.stringify(user));
-    return user;
-  } catch (error: any) {
-    if (error.response?.status === 401) {
-      throw new Error("Credenciais inválidas.");
-    } else if (error.response?.status === 422) {
-      throw new Error("Dados inválidos.");
+    // O backend usa o mesmo login para USER e ADMIN. A autorização é confirmada
+    // por uma chamada a um recurso /admin/**, pois o TokenJWTDTO não expõe a role.
+    await apiRequest<unknown[]>({ method: "GET", url: "/admin/reports" });
+    const user = await getCurrentUser();
+    return saveAuthSession(tokenResponse.token, { user, access: "ADMIN" });
+  } catch (error) {
+    clearAuthSession();
+    if (error instanceof ApiError && error.status === 403) {
+      throw new ApiError("A conta autenticada não possui a role ADMIN.", 403, error.response);
     }
-    throw new Error("Erro ao fazer login. Tente novamente.");
+    throw error;
   }
 }
 
-export async function adminLogin(email: string, _password: string) {
-  // Admin login still uses mock for now - backend doesn't have admin endpoint
-  const admin: User = { id: "admin-1", fullName: "Moderador Scripto", email, cpf: "00000000000", role: "admin" };
-  localStorage.setItem(CURRENT_KEY, JSON.stringify(admin));
-  localStorage.setItem("scripto-token", "mock-admin-token");
-  return admin;
+export async function deleteOwnAccount(): Promise<void> {
+  await apiRequest<void>({ method: "DELETE", url: "/user/me" });
+  clearAuthSession();
 }
 
-export function currentUser(): User | null {
-  if (typeof window === "undefined") return null;
-  try { return JSON.parse(localStorage.getItem(CURRENT_KEY) || "null"); } catch { return null; }
+export async function reactivateAccount(request: UserReactivateAccountDTO): Promise<void> {
+  await apiRequest<void>({ method: "POST", url: "/user/reactivate", data: request });
 }
 
-export function logout() {
-  localStorage.removeItem(CURRENT_KEY);
-  localStorage.removeItem("scripto-token");
-}
+export { currentSession };
 
-// These functions still use localStorage for now - backend endpoints not implemented yet
-export async function scheduleDeletion() {
-  const user = currentUser(); if (!user) return;
-  user.deletionScheduledAt = new Date().toISOString();
-  localStorage.setItem(CURRENT_KEY, JSON.stringify(user));
-}
-
-export async function reactivate() {
-  const user = currentUser(); if (!user) return;
-  user.deletionScheduledAt = null;
-  localStorage.setItem(CURRENT_KEY, JSON.stringify(user));
-}
-
-export function updateProfile(patch: Partial<Pick<User, "fullName" | "email">>) {
-  const user = currentUser(); if (!user) return null;
-  const next = { ...user, ...patch };
-  localStorage.setItem(CURRENT_KEY, JSON.stringify(next));
-  return next;
+export function logout(): void {
+  clearAuthSession();
 }
