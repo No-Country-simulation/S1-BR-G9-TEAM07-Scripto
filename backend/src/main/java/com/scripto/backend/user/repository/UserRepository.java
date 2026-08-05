@@ -12,5 +12,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findOptionalByEmail(String email);
 
+    boolean existsByEmail(String email);
+
+    boolean existsByCpf(String cpf);
+
     List<User> findAllByActiveFalseAndDeletedAtBefore(LocalDateTime date);
 }
