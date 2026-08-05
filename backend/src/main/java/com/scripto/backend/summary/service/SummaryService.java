@@ -8,6 +8,7 @@ import com.scripto.backend.summary.entity.DocumentSummary;
 import com.scripto.backend.summary.repository.DocumentSummaryRepository;
 import com.scripto.backend.user.entity.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SummaryService {
@@ -28,6 +29,7 @@ public class SummaryService {
         this.nemotronClient = nemotronClient;
     }
 
+    @Transactional
     public SummaryResponseDTO summarize(Long documentId, User user) {
         Document document = documentService.loadDetailedOwned(documentId, user);
         return summaryRepository.findByDocument(document)
