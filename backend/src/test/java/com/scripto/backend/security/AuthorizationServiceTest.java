@@ -8,8 +8,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AuthorizationServiceTest {
@@ -27,26 +28,31 @@ class AuthorizationServiceTest {
 
     @Test
     void deveCarregarUsuarioPorEmail() {
+        User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
+        when(userRepository.findByEmail("joao@email.com")).thenReturn(user);
 
-        // Arrange
-        User user = new User(
-                "João da Silva",
-                "joao@email.com",
-                "12345678901",
-                "senha"
-        );
+        UserDetails resultado = authorizationService.loadUserByUsername("joao@email.com");
 
-        when(userRepository.findByEmail("joao@email.com"))
-                .thenReturn(user);
-
-        // Act
-        UserDetails resultado =
-                authorizationService.loadUserByUsername("joao@email.com");
-
-        // Assert
         assertEquals(user, resultado);
+        verify(userRepository).findByEmail("joao@email.com");
+    }
 
-        verify(userRepository)
-                .findByEmail("joao@email.com");
+    @Test
+    void deveLancarExcecaoQuandoUsuarioNaoExistir() {
+        when(userRepository.findByEmail("inexistente@email.com")).thenReturn(null);
+
+        assertThrows(UsernameNotFoundException.class,
+                () -> authorizationService.loadUserByUsername("inexistente@email.com"));
+    }
+
+    @Test
+    void deveNormalizarEmail() {
+        User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
+        when(userRepository.findByEmail("joao@email.com")).thenReturn(user);
+
+        UserDetails resultado = authorizationService.loadUserByUsername("  JOAO@email.com  ");
+
+        assertEquals(user, resultado);
+        verify(userRepository).findByEmail("joao@email.com");
     }
 }
