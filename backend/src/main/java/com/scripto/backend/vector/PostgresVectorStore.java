@@ -165,17 +165,6 @@ public class PostgresVectorStore implements VectorStore {
     }
 
     @Override
-    public void deleteDocumentData(Long documentId) {
-        try {
-            jdbcTemplate.update("DELETE FROM training_candidates WHERE document_id = ?", documentId);
-            jdbcTemplate.update("DELETE FROM inference_events WHERE document_id = ?", documentId);
-            jdbcTemplate.update("DELETE FROM document_embeddings WHERE document_id = ?", documentId);
-        } catch (DataAccessException exception) {
-            log.warn("Could not remove vector telemetry for document {}: {}", documentId, exception.getMessage());
-        }
-    }
-
-    @Override
     public List<SimilarDocument> findSimilar(Long documentId, int limit) {
         try {
             return jdbcTemplate.query("""

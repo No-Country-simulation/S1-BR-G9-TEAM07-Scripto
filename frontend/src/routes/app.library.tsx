@@ -1,209 +1,164 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Filter, RefreshCw, Trash2, Pencil, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Eye, Filter, LockKeyhole, RefreshCw, Search, Sparkles, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { DocCard } from "@/components/common/DocCard";
-import { OrnamentDivider } from "@/components/ornaments/Acanthus";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { listMine, remove, rename, requestSummary, retry, setPublic, type Doc } from "@/services/documents.service";
+import { EmptyState, ErrorState, LoadingState } from "@/components/StatusState";
+import { PageHeader } from "@/components/PageHeader";
+import { Pagination } from "@/components/Pagination";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { documentStatusLabel, levelLabel, moderationStatusLabel } from "@/lib/display";
+import { friendlyError } from "@/lib/errors";
+import { useI18n } from "@/lib/i18n";
+import type { Level } from "@/services/classification.service";
+import { findDocumentById, findDocuments, type DocumentListDTO, type DocumentResponseDTO, type Status } from "@/services/documents.service";
+import { summarizeDocument, type SummaryResponseDTO } from "@/services/summary.service";
 
 export const Route = createFileRoute("/app/library")({ component: LibraryPage });
 
+const PAGE_SIZE = 9;
+type Sort = "newest" | "oldest" | "title";
+
 function LibraryPage() {
-  const [docs, setDocs] = useState<Doc[]>([]);
-  const [level, setLevel] = useState("");
-  const [cat, setCat] = useState("");
+  const { lang, t } = useI18n();
+  const [documents, setDocuments] = useState<DocumentListDTO[]>([]);
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
   const [tag, setTag] = useState("");
-  const [selected, setSelected] = useState<Doc | null>(null);
-  const [summaryTarget, setSummaryTarget] = useState<Doc | null>(null);
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryMessage, setSummaryMessage] = useState<string | null>(null);
-  const [renaming, setRenaming] = useState<Doc | null>(null);
-  const [renameValue, setRenameValue] = useState("");
-  const [renameErr, setRenameErr] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState<Doc | null>(null);
+  const [level, setLevel] = useState<Level | "">("");
+  const [status, setStatus] = useState<Status | "">("");
+  const [sort, setSort] = useState<Sort>("newest");
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<DocumentResponseDTO | null>(null);
+  const [summary, setSummary] = useState<SummaryResponseDTO | null>(null);
+  const [summaryLoadingId, setSummaryLoadingId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const load = () => listMine().then(setDocs);
-  useEffect(() => {
-    load();
-    const interval = window.setInterval(load, 1500);
-    return () => window.clearInterval(interval);
-  }, []);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setDocuments(await findDocuments());
+    } catch (currentError) {
+      setError(friendlyError(currentError, t));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
-  const filtered = useMemo(
-    () => docs.filter((doc) => (!level || doc.level === level) && (!cat || doc.category === cat) && (!tag || doc.tags.includes(tag))),
-    [docs, level, cat, tag],
-  );
-  const cats = [...new Set(docs.map((doc) => doc.category).filter((category) => category && category !== "—"))];
-  const tags = [...new Set(docs.flatMap((doc) => doc.tags))];
+  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { setPage(1); }, [query, category, tag, level, status, sort]);
+
+  const categories = useMemo(() => [...new Set(documents.map((document) => document.category).filter((value): value is string => Boolean(value)))].sort(), [documents]);
+  const tags = useMemo(() => [...new Set(documents.flatMap((document) => document.tags))].sort(), [documents]);
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase(lang);
+    return documents
+      .filter((document) => {
+        const haystack = [document.title, document.category ?? "", ...document.tags].join(" ").toLocaleLowerCase(lang);
+        return (!normalized || haystack.includes(normalized)) && (!category || document.category === category) && (!tag || document.tags.includes(tag)) && (!level || document.difficulty === level) && (!status || document.status === status);
+      })
+      .sort((left, right) => {
+        if (sort === "title") return left.title.localeCompare(right.title, lang);
+        const delta = new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+        return sort === "oldest" ? delta : -delta;
+      });
+  }, [documents, query, category, tag, level, status, sort, lang]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  async function openDocument(documentId: number) {
+    setError(null);
+    try { setSelected(await findDocumentById(documentId)); }
+    catch (currentError) { setError(friendlyError(currentError, t)); }
+  }
+
+  async function requestSummary(documentId: number) {
+    setSummaryLoadingId(documentId);
+    setError(null);
+    try {
+      const detail = await findDocumentById(documentId);
+      if (!detail.externalAiAllowed) {
+        toast.info(lang === "pt-BR" ? "Este documento não autorizou o uso de IA externa para um novo resumo." : "This document did not authorize external AI for a new summary.");
+        return;
+      }
+      setSummary(await summarizeDocument(documentId));
+    } catch (currentError) {
+      setError(friendlyError(currentError, t));
+    } finally {
+      setSummaryLoadingId(null);
+    }
+  }
+
+  const filtersActive = Boolean(query || category || tag || level || status);
+  function clearFilters() { setQuery(""); setCategory(""); setTag(""); setLevel(""); setStatus(""); setSort("newest"); }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <header className="flex items-end justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-widest text-dourado">Sua estante</p>
-          <h1 className="font-serif text-4xl">Minha biblioteca</h1>
-        </div>
-        <Link to="/app"><Button className="bg-vinho text-vinho-foreground hover:bg-vinho/90">Novo documento</Button></Link>
-      </header>
-      <OrnamentDivider className="mt-6" />
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      <PageHeader
+        eyebrow={t("library.eyebrow")}
+        title={t("library.title")}
+        description={t("library.subtitle")}
+        actions={<><Button type="button" variant="outline" onClick={() => void load()} disabled={loading}><RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />{t("common.refresh")}</Button><Link to="/app"><Button className="bg-vinho text-vinho-foreground hover:bg-vinho/90">{t("common.newDocument")}</Button></Link></>}
+      />
 
-      {summaryMessage && <p role="alert" className="mt-5 rounded-lg border border-bege bg-muted/40 p-3 text-sm">{summaryMessage}</p>}
-
-      {docs.length > 0 && (
-        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-bege bg-muted/30 p-3 text-sm">
-          <Filter className="h-4 w-4" />
-          <select value={level} onChange={(event) => setLevel(event.target.value)} className="rounded-md border bg-background px-2 py-1">
-            <option value="">Todos os níveis</option>
-            <option>Iniciante</option><option>Intermediário</option><option>Avançado</option>
+      <section className="mt-7 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5" aria-label={t("common.filters")}>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-[minmax(220px,1.4fr)_repeat(5,minmax(130px,1fr))]">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("library.search.placeholder")} className="pl-9" aria-label={t("common.search")} />
+          </div>
+          <Select value={category} onChange={setCategory} label={t("library.allCategories")} options={categories} />
+          <Select value={tag} onChange={setTag} label={t("library.allTags")} options={tags} />
+          <select value={level} onChange={(event) => setLevel(event.target.value as Level | "")} aria-label={t("library.allLevels")} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <option value="">{t("library.allLevels")}</option><option value="BEGINNER">{t("library.level.beginner")}</option><option value="INTERMEDIATE">{t("library.level.intermediate")}</option><option value="ADVANCED">{t("library.level.advanced")}</option>
           </select>
-          <select value={cat} onChange={(event) => setCat(event.target.value)} className="rounded-md border bg-background px-2 py-1">
-            <option value="">Todas as categorias</option>
-            {cats.map((category) => <option key={category}>{category}</option>)}
+          <select value={status} onChange={(event) => setStatus(event.target.value as Status | "")} aria-label={t("library.allStatuses")} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <option value="">{t("library.allStatuses")}</option><option value="PENDING">{t("library.status.pending")}</option><option value="PROCESSING">{t("library.status.processing")}</option><option value="PROCESSED">{t("library.status.processed")}</option><option value="ERROR">{t("library.status.error")}</option>
           </select>
-          <select value={tag} onChange={(event) => setTag(event.target.value)} className="rounded-md border bg-background px-2 py-1">
-            <option value="">Todas as tags</option>
-            {tags.map((item) => <option key={item}>{item}</option>)}
+          <select value={sort} onChange={(event) => setSort(event.target.value as Sort)} aria-label={lang === "pt-BR" ? "Ordenar" : "Sort"} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <option value="newest">{t("library.sort.newest")}</option><option value="oldest">{t("library.sort.oldest")}</option><option value="title">{t("library.sort.title")}</option>
           </select>
         </div>
-      )}
+        {filtersActive && <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={clearFilters}><Filter className="mr-1.5 h-4 w-4" aria-hidden="true" />{t("common.clearFilters")}</Button>}
+      </section>
 
-      {docs.length === 0 ? (
-        <div className="mt-16 rounded-xl border border-dashed border-bege p-10 text-center">
-          <p className="font-serif text-2xl">Parece que seus documentos também estão tentando se esconder.</p>
-          <p className="mt-2 text-taupe">Que tal enviar o primeiro?</p>
-          <Link to="/app"><Button className="mt-6 bg-vinho text-vinho-foreground hover:bg-vinho/90">Enviar meu primeiro texto</Button></Link>
-        </div>
-      ) : (
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((doc) => (
-            <DocCard
-              key={doc.id}
-              doc={doc}
-              onClick={() => setSelected(doc)}
-              onRequestSummary={() => { setSummaryMessage(null); setSummaryTarget(doc); }}
-              footer={
-                <div className="flex flex-wrap gap-2 text-xs">
-                  <button onClick={() => { setRenaming(doc); setRenameValue(doc.title); setRenameErr(null); }} className="inline-flex items-center gap-1 rounded-md border border-input px-2 py-1 hover:bg-muted">
-                    <Pencil className="h-3 w-3" /> Renomear
-                  </button>
-                  {doc.status === "ERROR" && doc.attempts < 3 && (
-                    <button onClick={() => retry(doc.id).then(load)} className="inline-flex items-center gap-1 rounded-md border border-input px-2 py-1 hover:bg-muted">
-                      <RefreshCw className="h-3 w-3" /> Tentar novamente
-                    </button>
-                  )}
-                  {doc.public && (
-                    <button onClick={() => setPublic(doc.id, false).then(load)} className="inline-flex items-center gap-1 rounded-md border border-input px-2 py-1 hover:bg-muted">
-                      <EyeOff className="h-3 w-3" /> Retirar do público
-                    </button>
-                  )}
-                  <button onClick={() => setDeleting(doc)} className="ml-auto inline-flex items-center gap-1 rounded-md border border-vinho/40 px-2 py-1 text-vinho hover:bg-vinho/5">
-                    <Trash2 className="h-3 w-3" /> Excluir
-                  </button>
-                </div>
-              }
-            />
-          ))}
-        </div>
-      )}
+      <div className="mt-5 flex items-start gap-3 rounded-xl border border-dourado/35 bg-dourado/10 p-4 text-sm text-muted-foreground">
+        <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-dourado" aria-hidden="true" /><p>{t("library.actionsPending")}</p>
+      </div>
 
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selected?.title}</DialogTitle>
-            <DialogDescription>Conteúdo original e informações do documento.</DialogDescription>
-          </DialogHeader>
-          {selected && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="rounded-md border px-2 py-1">{selected.category}</span>
-                <span className="rounded-md border px-2 py-1">{selected.level}</span>
-                <span className="rounded-md border px-2 py-1">{selected.status}</span>
-                <span className="rounded-md border px-2 py-1">{new Date(selected.createdAt).toLocaleDateString("pt-BR")}</span>
-              </div>
-              <section>
-                <h3 className="font-medium">Resumo</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{selected.summary}</p>
-              </section>
-              <section>
-                <h3 className="font-medium">Conteúdo original</h3>
-                {selected.source === "file" && !selected.content ? (
-                  <p className="mt-1 text-sm text-muted-foreground">O conteúdo do arquivo não está armazenado no frontend. Arquivo enviado: {selected.fileName ?? "não informado"}.</p>
-                ) : (
-                  <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg border bg-muted/30 p-4 font-sans text-sm">{selected.content || "Conteúdo não disponível."}</pre>
-                )}
-              </section>
-            </div>
-          )}
+      {error && <div className="mt-6"><ErrorState title={t("common.error")} description={error} onRetry={() => void load()} retryLabel={t("common.retry")} /></div>}
+      <div className="mt-7">
+        {loading ? <LoadingState label={t("common.loading")} /> : visible.length === 0 ? (
+          <EmptyState title={t("library.empty.title")} description={t("library.empty.body")} action={filtersActive ? <Button variant="outline" onClick={clearFilters}>{t("common.clearFilters")}</Button> : <Link to="/app"><Button className="bg-vinho text-vinho-foreground hover:bg-vinho/90">{t("common.newDocument")}</Button></Link>} />
+        ) : (
+          <><div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{visible.map((document) => <DocCard key={document.documentId} document={document} onOpen={() => void openDocument(document.documentId)} onRequestSummary={document.status === "PROCESSED" ? () => void requestSummary(document.documentId) : undefined} summaryLoading={summaryLoadingId === document.documentId} />)}</div><Pagination page={page} pageCount={pageCount} onPageChange={setPage} /></>
+        )}
+      </div>
+
+      <Dialog open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}>
+        <DialogContent className="max-h-[88vh] max-w-3xl overflow-y-auto">
+          <DialogHeader><DialogTitle>{selected?.title}</DialogTitle><DialogDescription>{selected && `${selected.visibility === "PUBLIC" ? t("common.public") : t("common.private")} · ${new Date(selected.createdAt).toLocaleString(lang)}`}</DialogDescription></DialogHeader>
+          {selected && <div className="space-y-6">
+            <dl className="grid gap-4 rounded-xl bg-muted/30 p-4 text-sm sm:grid-cols-2"><Data label="ID" value={selected.documentId} /><Data label="Status" value={documentStatusLabel(selected.status, t)} /><Data label={lang === "pt-BR" ? "Moderação" : "Moderation"} value={moderationStatusLabel(selected.moderationStatus, t)} /><Data label={lang === "pt-BR" ? "Uso interno autorizado" : "Internal training allowed"} value={selected.trainingUseAllowed ? t("common.yes") : t("common.no")} /></dl>
+            {selected.analysis && <section><h3 className="font-serif text-xl">{t("library.analysis")}</h3><div className="mt-3 flex flex-wrap gap-2"><span className="rounded-md bg-muted px-2 py-1 text-xs">{selected.analysis.category}</span><span className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">{levelLabel(selected.analysis.difficulty, t)}</span>{selected.analysis.tags.map((value) => <span key={value} className="rounded-full bg-pessego/50 px-2 py-1 text-xs text-marrom">#{value}</span>)}</div></section>}
+            <section><h3 className="font-serif text-xl">{t("library.content")}</h3><div className="mt-3 whitespace-pre-wrap break-words rounded-xl border border-border bg-muted/20 p-4 text-sm leading-7">{selected.content}</div></section>
+            <div className="flex flex-wrap gap-2 border-t border-border pt-4"><Button variant="outline" disabled title={t("common.backendPending")}><Eye className="mr-2 h-4 w-4" />{t("library.changeVisibility")}</Button><Button variant="outline" disabled title={t("common.backendPending")}><Trash2 className="mr-2 h-4 w-4" />{t("library.deleteDocument")}</Button>{selected.status === "PROCESSED" && <Button onClick={() => void requestSummary(selected.documentId)} disabled={summaryLoadingId === selected.documentId} className="bg-vinho text-vinho-foreground hover:bg-vinho/90"><Sparkles className="mr-2 h-4 w-4" />{t("library.generateSummary")}</Button>}</div>
+          </div>}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!summaryTarget} onOpenChange={(open) => !open && setSummaryTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Gerar resumo</DialogTitle>
-            <DialogDescription>A geração de resumo possui um limite de 3 tentativas diárias por usuário. Deseja continuar?</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" disabled={summaryLoading} onClick={() => setSummaryTarget(null)}>Cancelar</Button>
-            <Button
-              disabled={summaryLoading}
-              className="bg-vinho text-vinho-foreground hover:bg-vinho/90"
-              onClick={async () => {
-                if (!summaryTarget) return;
-                setSummaryLoading(true);
-                try {
-                  await requestSummary(summaryTarget.id);
-                } catch (error) {
-                  setSummaryMessage((error as Error).message);
-                } finally {
-                  setSummaryLoading(false);
-                  setSummaryTarget(null);
-                }
-              }}
-            >
-              {summaryLoading ? "Solicitando…" : "Continuar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!renaming} onOpenChange={(open) => !open && setRenaming(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Renomear documento</DialogTitle><DialogDescription>Escolha um novo título único.</DialogDescription></DialogHeader>
-          <Label htmlFor="rn">Novo título</Label>
-          <Input id="rn" maxLength={150} value={renameValue} onChange={(event) => setRenameValue(event.target.value)} className={renameErr ? "border-vinho ring-1 ring-vinho" : ""} />
-          {renameErr && <p className="text-sm text-vinho">{renameErr}</p>}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRenaming(null)}>Cancelar</Button>
-            <Button className="bg-vinho text-vinho-foreground hover:bg-vinho/90" onClick={async () => {
-              if (!renaming) return;
-              try { await rename(renaming.id, renameValue); setRenaming(null); load(); }
-              catch (error) { const current = error as Error & { status?: number }; setRenameErr(current.status === 409 ? "Título já existe." : current.message); }
-            }}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Excluir documento</DialogTitle><DialogDescription>Esta ação é permanente e não poderá ser desfeita.</DialogDescription></DialogHeader>
-          <div className="rounded-lg border border-vinho/30 bg-vinho/5 p-3 text-sm"><strong>{deleting?.title}</strong></div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleting(null)}>Cancelar</Button>
-            <Button className="bg-vinho text-vinho-foreground hover:bg-vinho/90" onClick={async () => { if (deleting) { await remove(deleting.id); setDeleting(null); load(); } }}>Excluir definitivamente</Button>
-          </DialogFooter>
-        </DialogContent>
+      <Dialog open={Boolean(summary)} onOpenChange={(open) => !open && setSummary(null)}>
+        <DialogContent><DialogHeader><DialogTitle>{t("library.summary")}</DialogTitle><DialogDescription>{summary && `${summary.provider} · ${summary.model}`}</DialogDescription></DialogHeader><p className="whitespace-pre-wrap text-sm leading-7">{summary?.summary}</p><p className="text-xs text-muted-foreground">{t("library.summaryRemaining")}: {summary?.remainingGenerationsToday}</p></DialogContent>
       </Dialog>
     </div>
   );
 }
+
+function Select({ value, onChange, label, options }: { value: string; onChange: (value: string) => void; label: string; options: string[] }) {
+  return <select value={value} onChange={(event) => onChange(event.target.value)} aria-label={label} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><option value="">{label}</option>{options.map((option) => <option key={option} value={option}>{option}</option>)}</select>;
+}
+function Data({ label, value }: { label: string; value: React.ReactNode }) { return <div><dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</dt><dd className="mt-1 font-medium">{value}</dd></div>; }

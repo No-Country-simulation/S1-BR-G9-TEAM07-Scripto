@@ -17,10 +17,6 @@ public class NoopVectorStore implements VectorStore {
     }
 
     @Override
-    public void deleteDocumentData(Long documentId) {
-    }
-
-    @Override
     public List<SimilarDocument> findSimilar(Long documentId, int limit) {
         return List.of();
     }

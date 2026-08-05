@@ -1,166 +1,74 @@
-import { sleep } from "./api";
-import { currentUser } from "./auth.service";
+import { apiRequest } from "./api";
+import type { AIAnalysisResultDTO, Level } from "./classification.service";
 
-export type DocStatus = "PENDING" | "PROCESSING" | "PROCESSED" | "ERROR";
-export type Level = "Iniciante" | "Intermediário" | "Avançado";
+export type Status = "PENDING" | "PROCESSING" | "PROCESSED" | "ERROR";
+export type Visibility = "PRIVATE" | "PUBLIC";
+export type ModerationStatus = "APPROVED" | "PENDING" | "BLOCKED";
 
-export type Doc = {
-  id: string;
-  ownerId: string;
-  ownerName: string;
+export type DocumentRequestDTO = {
   title: string;
-  summary: string;
-  category: string;
-  level: Level;
-  tags: string[];
-  status: DocStatus;
-  attempts: number;
-  public: boolean;
-  createdAt: string;
-  source: "paste" | "file";
   content: string;
-  fileName?: string;
+  visibility?: Visibility;
+  externalAiAllowed?: boolean;
+  trainingUseAllowed?: boolean;
 };
 
-const KEY = "scripto-docs";
+export type DocumentResponseDTO = {
+  documentId: number;
+  title: string;
+  content: string;
+  status: Status;
+  visibility: Visibility;
+  moderationStatus: ModerationStatus;
+  externalAiAllowed: boolean;
+  trainingUseAllowed: boolean;
+  analysis: AIAnalysisResultDTO | null;
+  createdAt: string;
+  updatedAt: string | null;
+};
 
-function read(): Doc[] {
-  if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; }
-}
-function write(d: Doc[]) { localStorage.setItem(KEY, JSON.stringify(d)); }
+export type DocumentListDTO = {
+  documentId: number;
+  title: string;
+  status: Status;
+  visibility: Visibility;
+  category: string | null;
+  difficulty: Level | null;
+  tags: string[];
+  createdAt: string;
+};
 
-const CATEGORIES = ["Filosofia", "História", "Ciência da Computação", "Biologia", "Direito", "Economia", "Literatura", "Matemática"];
-const TAG_POOL = ["kant", "algoritmos", "renascença", "estruturas", "ética", "clean-code", "genética", "microeconomia", "modernismo", "cálculo", "ai", "leitura crítica"];
-const LEVELS: Level[] = ["Iniciante", "Intermediário", "Avançado"];
+export type PublicDocumentDTO = {
+  id: number;
+  title: string;
+  content: string;
+  authorId: number;
+  authorName: string;
+  category: string | null;
+  difficulty: Level | null;
+  tags: string[];
+  createdAt: string;
+};
 
-function pick<T>(arr: T[], n = 1): T[] {
-  const c = [...arr]; const out: T[] = [];
-  while (out.length < n && c.length) out.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]);
-  return out;
-}
+export type FindDocumentsParams = {
+  category?: string;
+  tag?: string;
+  level?: Level;
+  status?: Status;
+};
 
-export async function listMine(): Promise<Doc[]> {
-  await sleep(200);
-  const user = currentUser();
-  return read().filter(d => d.ownerId === user?.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-}
-
-export async function listPublic(): Promise<Doc[]> {
-  await sleep(200);
-  const user = currentUser();
-  return read().filter(d => d.public && d.status === "PROCESSED" && d.ownerId !== user?.id)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-}
-
-export async function create(input: { title: string; content?: string; fileName?: string; source: "paste" | "file"; }): Promise<Doc> {
-  await sleep(300);
-  const user = currentUser();
-  if (!user) throw new Error("Não autenticado.");
-  const docs = read();
-  if (docs.some(d => d.ownerId === user.id && d.title.trim().toLowerCase() === input.title.trim().toLowerCase())) {
-    const err = new Error("Já existe um documento com este título.") as Error & { status?: number };
-    err.status = 409;
-    throw err;
-  }
-  const doc: Doc = {
-    id: crypto.randomUUID(),
-    ownerId: user.id,
-    ownerName: user.fullName,
-    title: input.title.trim(),
-    summary: "Análise em andamento…",
-    category: "—",
-    level: "Intermediário",
-    tags: [],
-    status: "PENDING",
-    attempts: 0,
-    public: true,
-    createdAt: new Date().toISOString(),
-    source: input.source,
-    content: input.content ?? "",
-    fileName: input.fileName,
-  };
-  docs.push(doc); write(docs);
-  // simulate processing pipeline
-  processInBackground(doc.id);
-  return doc;
+export async function sendDocument(request: DocumentRequestDTO): Promise<DocumentResponseDTO> {
+  return apiRequest<DocumentResponseDTO>({ method: "POST", url: "/document", data: request });
 }
 
-function processInBackground(id: string) {
-  setTimeout(() => updateStatus(id, "PROCESSING"), 800);
-  setTimeout(() => finishProcessing(id), 3500);
+export async function findDocumentById(documentId: number): Promise<DocumentResponseDTO> {
+  return apiRequest<DocumentResponseDTO>({ method: "GET", url: `/document/${documentId}` });
 }
 
-function updateStatus(id: string, status: DocStatus) {
-  const docs = read();
-  const d = docs.find(x => x.id === id); if (!d) return;
-  d.status = status; write(docs);
+export async function findPublicDocumentById(documentId: number): Promise<PublicDocumentDTO> {
+  return apiRequest<PublicDocumentDTO>({ method: "GET", url: `/document/public/${documentId}` });
 }
 
-function finishProcessing(id: string) {
-  const docs = read();
-  const d = docs.find(x => x.id === id); if (!d) return;
-  if (Math.random() < 0.15 && d.attempts < 3) {
-    d.status = "ERROR"; d.attempts += 1;
-  } else {
-    d.status = "PROCESSED";
-    d.summary = "Resumo automático gerado com base no conteúdo enviado, destacando ideias centrais e conclusões.";
-    d.category = pick(CATEGORIES, 1)[0];
-    d.level = pick(LEVELS, 1)[0];
-    d.tags = pick(TAG_POOL, 5);
-  }
-  write(docs);
-}
-
-export async function retry(id: string) {
-  await sleep(200);
-  const docs = read();
-  const d = docs.find(x => x.id === id); if (!d) throw new Error("Não encontrado");
-  if (d.attempts >= 3) throw new Error("Limite de tentativas atingido");
-  d.status = "PENDING"; write(docs);
-  processInBackground(id);
-}
-
-export async function rename(id: string, title: string) {
-  await sleep(150);
-  const docs = read();
-  const d = docs.find(x => x.id === id); if (!d) throw new Error("Não encontrado");
-  if (docs.some(x => x.ownerId === d.ownerId && x.id !== id && x.title.trim().toLowerCase() === title.trim().toLowerCase())) {
-    const err = new Error("Título já existente.") as Error & { status?: number };
-    err.status = 409; throw err;
-  }
-  d.title = title.trim(); write(docs);
-  return d;
-}
-
-export async function remove(id: string) {
-  await sleep(150);
-  write(read().filter(d => d.id !== id));
-}
-
-export async function setPublic(id: string, isPublic: boolean) {
-  await sleep(100);
-  const docs = read();
-  const d = docs.find(x => x.id === id); if (!d) return;
-  d.public = isPublic; write(docs);
-}
-
-export async function recommendations(): Promise<Doc[]> {
-  const mine = await listMine();
-  const all = await listPublic();
-  if (!mine.length) return all.slice(0, 3);
-  const myTags = new Set(mine.flatMap(d => d.tags));
-  return all
-    .map(d => ({ d, score: d.tags.filter(t => myTags.has(t)).length }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 6)
-    .map(x => x.d);
-}
-
-
-export async function requestSummary(_id: string): Promise<never> {
-  throw Object.assign(
-    new Error("A geração de resumo ainda não está disponível: o backend não possui um endpoint para essa operação."),
-    { status: 501 },
-  );
+export async function findDocuments(params: FindDocumentsParams = {}): Promise<DocumentListDTO[]> {
+  return apiRequest<DocumentListDTO[]>({ method: "GET", url: "/document", params });
 }

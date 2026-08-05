@@ -1,35 +1,40 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Users, FileText, Flag, ShieldOff } from "lucide-react";
-import { metrics } from "@/services/admin.service";
-import { OrnamentDivider } from "@/components/ornaments/Acanthus";
+import { useCallback, useEffect, useState } from "react";
+import { FileText, Flag, ShieldOff, Users } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { ErrorState, LoadingState } from "@/components/StatusState";
+import { friendlyError } from "@/lib/errors";
+import { useI18n } from "@/lib/i18n";
+import { getAdminMetrics, type AdminMetrics } from "@/services/admin.service";
 
 export const Route = createFileRoute("/admin/")({ component: AdminOverview });
 
 function AdminOverview() {
-  const [m, setM] = useState<Awaited<ReturnType<typeof metrics>> | null>(null);
-  useEffect(() => { metrics().then(setM); }, []);
+  const { t } = useI18n();
+  const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setMetrics(await getAdminMetrics());
+    } catch (currentError) {
+      setError(friendlyError(currentError, t));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => { void load(); }, [load]);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <p className="text-xs uppercase tracking-widest text-dourado">Painel</p>
-      <h1 className="font-serif text-4xl">Visão geral</h1>
-      <OrnamentDivider className="mt-6" />
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card icon={Users}   label="Usuários"           value={m?.users ?? "—"} />
-        <Card icon={ShieldOff} label="Suspensos"        value={m?.suspended ?? "—"} />
-        <Card icon={FileText} label="Documentos"        value={m?.docs ?? "—"} />
-        <Card icon={Flag}    label="Denúncias pendentes" value={m?.reportsPending ?? "—"} />
-      </div>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      <PageHeader eyebrow={t("admin.overview.eyebrow")} title={t("admin.overview.title")} description={t("admin.overview.subtitle")} />
+      {loading ? <div className="mt-8"><LoadingState label={t("common.loading")} /></div> : error ? <div className="mt-8"><ErrorState title={t("common.error")} description={error} onRetry={() => void load()} retryLabel={t("common.retry")} /></div> : (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Metric icon={Users} label={t("admin.metric.users")} value={metrics?.users ?? t("admin.metric.pending")} /><Metric icon={ShieldOff} label={t("admin.metric.suspended")} value={metrics?.suspendedUsers ?? t("admin.metric.pending")} /><Metric icon={FileText} label={t("admin.metric.documents")} value={metrics?.documents ?? t("admin.metric.pending")} /><Metric icon={Flag} label={t("admin.metric.reports")} value={metrics?.reportsOpen ?? 0} /></div>
+      )}
     </div>
   );
 }
-
-function Card({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: string | number }) {
-  return (
-    <div className="rounded-xl border border-bege bg-card p-5">
-      <div className="flex items-center gap-2 text-taupe"><Icon className="h-4 w-4" /> <span className="text-xs uppercase tracking-widest">{label}</span></div>
-      <p className="mt-3 font-serif text-3xl">{value}</p>
-    </div>
-  );
-}
+function Metric({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: string | number }) { return <article className="rounded-2xl border border-border bg-card p-5 shadow-sm"><div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p><Icon className="h-5 w-5 text-dourado" /></div><p className={`mt-5 font-serif ${typeof value === "number" ? "text-4xl" : "text-xl"}`}>{value}</p></article>; }

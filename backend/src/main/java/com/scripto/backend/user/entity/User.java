@@ -1,9 +1,7 @@
 package com.scripto.backend.user.entity;
 
 import com.scripto.backend.document.entity.Document;
-import com.scripto.backend.user.dto.UserUpdateDTO;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -18,7 +16,6 @@ import java.util.Collection;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -26,36 +23,46 @@ import java.util.List;
 @EqualsAndHashCode(of = "id")
 public class User implements UserDetails {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter
     private Long id;
 
+    @Setter
     @Column(name = "full_name", length = 150, nullable = false)
     private String fullName;
 
     @Column(name = "cpf", length = 11, nullable = false, unique = true, columnDefinition = "CHAR(11)")
     private String cpf;
 
+    @Setter
     @Column(length = 255, nullable = false, unique = true)
     private String email;
 
+    @Setter
     @Column(name = "password_hash", length = 255, nullable = false)
     private String passwordHash;
 
+    @Setter
     @Column(nullable = false)
     private Boolean active = true;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Setter
     private Role role = Role.USER;
 
+    @Setter
     @Column(name = "failed_login_attempts", nullable = false)
     private Integer failedLoginAttempts = 0;
 
+    @Setter
     @OneToMany(mappedBy = "user")
     private List<Document> documents;
 
+    @Setter
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    @Setter
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -72,9 +79,16 @@ public class User implements UserDetails {
         this.passwordHash = encryptedPassword;
     }
 
-    public void update(@Valid UserUpdateDTO userUpdateDTO, String encryptedPassword){
-        this.fullName = userUpdateDTO.fullName();
-        this.email = userUpdateDTO.email();
+    public void updateProfile(String fullName, String email) {
+        if (fullName != null) {
+            this.fullName = fullName.trim();
+        }
+        if (email != null) {
+            this.email = email.trim().toLowerCase();
+        }
+    }
+
+    public void updatePassword(String encryptedPassword) {
         this.passwordHash = encryptedPassword;
     }
 

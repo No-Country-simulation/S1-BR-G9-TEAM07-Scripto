@@ -3,7 +3,11 @@ package com.scripto.backend.user.controller;
 import com.scripto.backend.auth.dto.LoginDTO;
 import com.scripto.backend.auth.dto.TokenJWTDTO;
 import com.scripto.backend.auth.dto.UserRegisterDTO;
+import com.scripto.backend.exception.BusinessRuleException;
+import com.scripto.backend.user.dto.UserPasswordChangeDTO;
+import com.scripto.backend.user.dto.UserProfileUpdateDTO;
 import com.scripto.backend.user.dto.UserReactivateAccountDTO;
+import com.scripto.backend.user.dto.UserViewDTO;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,95 +35,61 @@ class UserControllerTest {
 
     @Test
     void deveCadastrarUsuario() {
-
-        // Arrange
-        UserRegisterDTO dto = new UserRegisterDTO(
-                "12345678901",
-                "João da Silva",
-                "joao@email.com",
-                "123456"
-        );
-
-        when(userService.findUserByEmail(dto.email()))
-                .thenReturn(null);
-
-        // Act
+        UserRegisterDTO dto = new UserRegisterDTO("12345678901", "João da Silva", "joao@email.com", "123456");
         var response = userController.registerUser(dto);
-
-        // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-
-        verify(userService).findUserByEmail(dto.email());
         verify(userService).registerUser(dto);
     }
 
     @Test
-    void naoDeveCadastrarUsuarioComEmailDuplicado() {
-
-        // Arrange
-        UserRegisterDTO dto = new UserRegisterDTO(
-                "12345678901",
-                "João da Silva",
-                "joao@email.com",
-                "123456"
-        );
-
-        User usuarioExistente = new User();
-
-        when(userService.findUserByEmail(dto.email()))
-                .thenReturn(usuarioExistente);
-
-        // Act
-        var response = userController.registerUser(dto);
-
-        // Assert
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-
-        verify(userService).findUserByEmail(dto.email());
-        verify(userService, never()).registerUser(any());
+    void deveRetornar409QuandoEmailDuplicado() {
+        UserRegisterDTO dto = new UserRegisterDTO("12345678901", "João da Silva", "joao@email.com", "123456");
+        doThrow(new BusinessRuleException("E-mail já cadastrado.")).when(userService).registerUser(dto);
+        assertThrows(BusinessRuleException.class, () -> userController.registerUser(dto));
+        verify(userService).registerUser(dto);
     }
 
     @Test
     void deveRealizarLogin() {
-
-        // Arrange
-        LoginDTO dto = new LoginDTO(
-                "joao@email.com",
-                "123456"
-        );
-
-        when(userService.loginUser(dto))
-                .thenReturn("token-jwt");
-
-        // Act
+        LoginDTO dto = new LoginDTO("joao@email.com", "123456");
+        when(userService.loginUser(dto)).thenReturn("token-jwt");
         var response = userController.loginUser(dto);
-
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-
         TokenJWTDTO body = response.getBody();
-
         assertNotNull(body);
         assertEquals("token-jwt", body.token());
-
         verify(userService).loginUser(dto);
     }
 
     @Test
-    void deveReativarConta() {
+    void deveAtualizarProprioPerfil() {
+        User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
+        UserProfileUpdateDTO dto = new UserProfileUpdateDTO("João Pedro", "joaopedro@email.com");
+        UserViewDTO view = new UserViewDTO(1L, "João Pedro", "joaopedro@email.com", "12345678901");
+        when(userService.updateOwnProfile(user, dto)).thenReturn(view);
 
-        // Arrange
-        UserReactivateAccountDTO dto = new UserReactivateAccountDTO(
-                "joao@email.com",
-                "123456"
-        );
+        var response = userController.updateOwnProfile(user, dto);
 
-        // Act
-        var response = userController.reactivateAccount(dto);
-
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("João Pedro", response.getBody().fullName());
+    }
 
+    @Test
+    void deveAlterarPropriaSenha() {
+        User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
+        UserPasswordChangeDTO dto = new UserPasswordChangeDTO("atual", "Senha@123", "Senha@123");
+
+        var response = userController.changeOwnPassword(user, dto);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(userService).changeOwnPassword(user, dto);
+    }
+
+    @Test
+    void deveReativarConta() {
+        UserReactivateAccountDTO dto = new UserReactivateAccountDTO("joao@email.com", "123456");
+        var response = userController.reactivateAccount(dto);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(userService).reactivateAccount(dto);
     }
 }

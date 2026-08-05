@@ -16,15 +16,18 @@ import com.scripto.backend.document.dto.DocumentListDTO;
 import com.scripto.backend.document.dto.DocumentRequestDTO;
 import com.scripto.backend.document.dto.DocumentResponseDTO;
 import com.scripto.backend.document.dto.PublicDocumentDTO;
+import com.scripto.backend.document.dto.VisibilityUpdateDTO;
 import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.document.repository.DocumentRepository;
+import com.scripto.backend.exception.BusinessRuleException;
 import com.scripto.backend.exception.ResourceNotFoundException;
 import com.scripto.backend.tag.service.TagService;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.vector.VectorStore;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -99,12 +102,33 @@ public class DocumentService {
                 .toList();
     }
 
-    @Transactional
-    public void deleteDocument(Long documentId, User user) {
-        Document document = documentRepository.findByIdAndUser(documentId, user)
+    public DocumentResponseDTO updateVisibility(Long documentId, VisibilityUpdateDTO dto, User user) {
+        Document document = documentRepository.findDetailedById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Documento não encontrado."));
-        vectorStore.deleteDocumentData(documentId);
-        documentRepository.delete(document);
+
+        if (!document.getUser().getId().equals(user.getId())) {
+            throw new ResourceNotFoundException("Documento não encontrado.");
+        }
+
+
+        if (document.getModerationStatus() == ModerationStatus.BLOCKED) {
+            if (dto.visibility() == Visibility.PUBLIC) {
+                throw new BusinessRuleException("Documentos bloqueados pela moderação não podem se tornar públicos.");
+            }
+        }
+
+        document.setVisibility(dto.visibility());
+        documentRepository.save(document);
+        return toResponse(document);
+    }
+
+    public List<PublicDocumentDTO> listPublicDocuments(User currentUser, String category, String tag, Level difficulty, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        String normalizedTag = tag == null ? null : tagService.normalizeKey(tag);
+        return documentRepository.findPublicDocuments(category, normalizedTag, difficulty, currentUser, pageable)
+                .stream()
+                .map(PublicDocumentDTO::new)
+                .toList();
     }
 
     public Document loadDetailedOwned(Long documentId, User user) {

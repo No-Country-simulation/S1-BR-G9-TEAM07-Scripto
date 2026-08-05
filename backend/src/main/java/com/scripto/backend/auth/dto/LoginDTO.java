@@ -15,4 +15,9 @@ public record LoginDTO(
         @NotBlank
         String password
 ) {
+    public LoginDTO {
+        if (email != null) {
+            email = email.trim().toLowerCase();
+        }
+    }
 }

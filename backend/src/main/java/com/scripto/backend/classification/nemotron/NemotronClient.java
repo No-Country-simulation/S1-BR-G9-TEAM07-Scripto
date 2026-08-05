@@ -86,9 +86,8 @@ public class NemotronClient {
         ensureConfigured();
         String prompt = """
                 Create a concise summary of the following document.
-                Return only valid JSON in this exact shape: {"summary":"..."}.
+                Return only the summary text, without JSON, markdown, labels, quotes, or commentary.
                 The summary must have at most 20 words and must preserve the document language.
-                Do not include markdown or additional fields.
 
                 Title:
                 %s
@@ -96,9 +95,12 @@ public class NemotronClient {
                 Content:
                 %s
                 """.formatted(title, content);
-        JsonNode payload = call(prompt, 120);
-        JsonNode generated = parseGeneratedJson(payload);
-        String summary = text(generated, "summary", "resumo").strip();
+        // Nemotron 3 Super defaults to high reasoning effort. For this short deterministic
+        // task, reasoning is disabled so the final answer is not displaced or truncated by
+        // a reasoning trace. Plain text is used because the result contains only one field;
+        // the public SummaryResponseDTO remains unchanged and is serialized by the backend.
+        JsonNode payload = call(prompt, 256, "none");
+        String summary = generatedContent(payload).strip();
         if (summary.isBlank()) {
             throw new ClassificationUnavailableException("Nemotron returned an empty summary");
         }
@@ -137,13 +139,19 @@ public class NemotronClient {
     }
 
     private JsonNode call(String prompt, int maxTokens) {
-        Map<String, Object> requestBody = Map.of(
-                "model", properties.getModel(),
-                "messages", List.of(Map.of("role", "user", "content", prompt)),
-                "temperature", 0.1,
-                "max_tokens", maxTokens,
-                "stream", false
-        );
+        return call(prompt, maxTokens, null);
+    }
+
+    private JsonNode call(String prompt, int maxTokens, String reasoningEffort) {
+        Map<String, Object> requestBody = new LinkedHashMap<>();
+        requestBody.put("model", properties.getModel());
+        requestBody.put("messages", List.of(Map.of("role", "user", "content", prompt)));
+        requestBody.put("temperature", 0.1);
+        requestBody.put("max_tokens", maxTokens);
+        requestBody.put("stream", false);
+        if (reasoningEffort != null && !reasoningEffort.isBlank()) {
+            requestBody.put("reasoning_effort", reasoningEffort);
+        }
         RuntimeException lastFailure = null;
         int attempts = Math.max(1, properties.getMaxAttempts());
         for (int attempt = 1; attempt <= attempts; attempt++) {
@@ -183,7 +191,7 @@ public class NemotronClient {
         return status.value() == 429 || status.is5xxServerError();
     }
 
-    private JsonNode parseGeneratedJson(JsonNode response) {
+    private String generatedContent(JsonNode response) {
         if (response.has("error")) {
             throw new ClassificationUnavailableException("Nemotron API returned an error");
         }
@@ -191,13 +199,27 @@ public class NemotronClient {
         if (!choices.isArray() || choices.isEmpty()) {
             throw new ClassificationUnavailableException("Nemotron response has no choices");
         }
-        String content = choices.get(0).path("message").path("content").asText("").strip();
+        JsonNode firstChoice = choices.get(0);
+        String finishReason = firstChoice.path("finish_reason").asText("").strip();
+        String content = firstChoice.path("message").path("content").asText("").strip();
         if (content.isBlank()) {
             throw new ClassificationUnavailableException("Nemotron generated empty content");
         }
-        if (content.startsWith("```")) {
-            content = content.replaceFirst("^```(?:json)?\\s*", "").replaceFirst("\\s*```$", "").strip();
+        if ("length".equalsIgnoreCase(finishReason)) {
+            throw new ClassificationUnavailableException(
+                    "Nemotron response was truncated before completing the final answer"
+            );
         }
+        if (content.startsWith("```")) {
+            content = content.replaceFirst("^```(?:json|text)?\\s*", "")
+                    .replaceFirst("\\s*```$", "")
+                    .strip();
+        }
+        return content;
+    }
+
+    private JsonNode parseGeneratedJson(JsonNode response) {
+        String content = generatedContent(response);
         try {
             return objectMapper.readTree(content);
         } catch (JsonProcessingException firstFailure) {
@@ -210,6 +232,7 @@ public class NemotronClient {
                     // handled below
                 }
             }
+            log.warn("Nemotron generated invalid JSON (contentLength={})", content.length());
             throw new ClassificationUnavailableException("Nemotron generated invalid JSON", firstFailure);
         }
     }

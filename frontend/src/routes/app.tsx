@@ -1,24 +1,18 @@
-import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { AppSidebar } from "@/components/layout/AppSidebar";
-import { currentUser } from "@/services/auth.service";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { UserSidebar } from "@/components/UserSidebar";
 
 export const Route = createFileRoute("/app")({ component: AppLayout });
 
 function AppLayout() {
-  const router = useRouter();
-  useEffect(() => {
-    const u = currentUser();
-    if (!u) router.navigate({ to: "/login" });
-    else if (u.deletionScheduledAt) router.navigate({ to: "/account-suspended" });
-  }, [router]);
-
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar />
-      <main className="h-screen min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
-        <Outlet />
-      </main>
-    </div>
+    <ProtectedRoute>
+      <div className="flex min-h-screen bg-background md:h-screen md:overflow-hidden">
+        <UserSidebar />
+        <main id="main-content" className="min-w-0 flex-1 md:h-screen md:overflow-y-auto md:overflow-x-hidden">
+          <Outlet />
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 }

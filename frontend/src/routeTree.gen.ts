@@ -13,9 +13,17 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountSuspendedRouteImport } from './routes/account-suspended'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as ForbiddenRouteImport } from './routes/forbidden'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PrivacityRouteImport } from './routes/privacity'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminDocumentRouteImport } from './routes/admin.document'
 import { Route as AdminDocumentsRouteImport } from './routes/admin.documents'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
@@ -45,9 +53,34 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForbiddenRoute = ForbiddenRouteImport.update({
+  id: '/forbidden',
+  path: '/forbidden',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacityRoute = PrivacityRouteImport.update({
+  id: '/privacity',
+  path: '/privacity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -55,9 +88,24 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDocumentRoute = AdminDocumentRouteImport.update({
+  id: '/document',
+  path: '/document',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDocumentsRoute = AdminDocumentsRouteImport.update({
@@ -106,8 +154,16 @@ export interface FileRoutesByFullPath {
   '/account-suspended': typeof AccountSuspendedRoute
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
+  '/explore': typeof ExploreRoute
+  '/forbidden': typeof ForbiddenRoute
+  '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/privacity': typeof PrivacityRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/terms': typeof TermsRoute
+  '/admin/document': typeof AdminDocumentRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -121,8 +177,16 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account-suspended': typeof AccountSuspendedRoute
+  '/explore': typeof ExploreRoute
+  '/forbidden': typeof ForbiddenRoute
+  '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/privacity': typeof PrivacityRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/terms': typeof TermsRoute
+  '/admin/document': typeof AdminDocumentRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -139,8 +203,16 @@ export interface FileRoutesById {
   '/account-suspended': typeof AccountSuspendedRoute
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
+  '/explore': typeof ExploreRoute
+  '/forbidden': typeof ForbiddenRoute
+  '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/privacity': typeof PrivacityRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/terms': typeof TermsRoute
+  '/admin/document': typeof AdminDocumentRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -158,8 +230,16 @@ export interface FileRouteTypes {
     | '/account-suspended'
     | '/admin'
     | '/app'
+    | '/explore'
+    | '/forbidden'
+    | '/library'
     | '/login'
+    | '/privacity'
+    | '/profile'
     | '/register'
+    | '/reset-password'
+    | '/terms'
+    | '/admin/document'
     | '/admin/documents'
     | '/admin/login'
     | '/admin/reports'
@@ -173,8 +253,16 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account-suspended'
+    | '/explore'
+    | '/forbidden'
+    | '/library'
     | '/login'
+    | '/privacity'
+    | '/profile'
     | '/register'
+    | '/reset-password'
+    | '/terms'
+    | '/admin/document'
     | '/admin/documents'
     | '/admin/login'
     | '/admin/reports'
@@ -190,8 +278,16 @@ export interface FileRouteTypes {
     | '/account-suspended'
     | '/admin'
     | '/app'
+    | '/explore'
+    | '/forbidden'
+    | '/library'
     | '/login'
+    | '/privacity'
+    | '/profile'
     | '/register'
+    | '/reset-password'
+    | '/terms'
+    | '/admin/document'
     | '/admin/documents'
     | '/admin/login'
     | '/admin/reports'
@@ -208,8 +304,15 @@ export interface RootRouteChildren {
   AccountSuspendedRoute: typeof AccountSuspendedRoute
   AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
+  ExploreRoute: typeof ExploreRoute
+  ForbiddenRoute: typeof ForbiddenRoute
+  LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
+  PrivacityRoute: typeof PrivacityRoute
+  ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -242,11 +345,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forbidden': {
+      id: '/forbidden'
+      path: '/forbidden'
+      fullPath: '/forbidden'
+      preLoaderRoute: typeof ForbiddenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacity': {
+      id: '/privacity'
+      path: '/privacity'
+      fullPath: '/privacity'
+      preLoaderRoute: typeof PrivacityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -256,11 +394,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/document': {
+      id: '/admin/document'
+      path: '/document'
+      fullPath: '/admin/document'
+      preLoaderRoute: typeof AdminDocumentRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/documents': {
@@ -323,6 +482,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminDocumentRoute: typeof AdminDocumentRoute
   AdminDocumentsRoute: typeof AdminDocumentsRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminReportsRoute: typeof AdminReportsRoute
@@ -331,6 +491,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminDocumentRoute: AdminDocumentRoute,
   AdminDocumentsRoute: AdminDocumentsRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminReportsRoute: AdminReportsRoute,
@@ -361,8 +522,15 @@ const rootRouteChildren: RootRouteChildren = {
   AccountSuspendedRoute: AccountSuspendedRoute,
   AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
+  ExploreRoute: ExploreRoute,
+  ForbiddenRoute: ForbiddenRoute,
+  LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
+  PrivacityRoute: PrivacityRoute,
+  ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

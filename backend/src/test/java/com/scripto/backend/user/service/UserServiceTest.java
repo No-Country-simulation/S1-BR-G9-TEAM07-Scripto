@@ -2,12 +2,14 @@ package com.scripto.backend.user.service;
 
 import com.scripto.backend.auth.dto.LoginDTO;
 import com.scripto.backend.auth.dto.UserRegisterDTO;
+import com.scripto.backend.exception.BusinessRuleException;
+import com.scripto.backend.exception.ResourceNotFoundException;
 import com.scripto.backend.security.JwtService;
+import com.scripto.backend.user.dto.UserPasswordChangeDTO;
+import com.scripto.backend.user.dto.UserProfileUpdateDTO;
 import com.scripto.backend.user.dto.UserReactivateAccountDTO;
-import com.scripto.backend.user.dto.UserUpdateDTO;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -17,8 +19,10 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -46,28 +50,16 @@ class UserServiceTest {
 
     @Test
     void deveCadastrarUsuario() {
+        UserRegisterDTO dto = new UserRegisterDTO("12345678901", "João da Silva", "joao@email.com", "123456");
+        when(passwordEncoder.encode("123456")).thenReturn("senhaCriptografada");
+        when(userRepository.existsByEmail("joao@email.com")).thenReturn(false);
+        when(userRepository.existsByCpf("12345678901")).thenReturn(false);
 
-        // Arrange
-        UserRegisterDTO dto = new UserRegisterDTO(
-                "12345678901",
-                "João da Silva",
-                "joao@email.com",
-                "123456"
-        );
-
-        when(passwordEncoder.encode("123456"))
-                .thenReturn("senhaCriptografada");
-
-        // Act
         userService.registerUser(dto);
 
-        // Assert
         verify(passwordEncoder).encode("123456");
-
-
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
-
         User usuarioSalvo = userCaptor.getValue();
         assertEquals("João da Silva", usuarioSalvo.getFullName());
         assertEquals("joao@email.com", usuarioSalvo.getEmail());
@@ -75,271 +67,123 @@ class UserServiceTest {
     }
 
     @Test
+    void deveLancarExcecaoQuandoEmailDuplicado() {
+        UserRegisterDTO dto = new UserRegisterDTO("12345678901", "João da Silva", "joao@email.com", "123456");
+        when(userRepository.existsByEmail("joao@email.com")).thenReturn(true);
+
+        assertThrows(BusinessRuleException.class, () -> userService.registerUser(dto));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoCpfDuplicado() {
+        UserRegisterDTO dto = new UserRegisterDTO("12345678901", "João da Silva", "joao@email.com", "123456");
+        when(userRepository.existsByEmail("joao@email.com")).thenReturn(false);
+        when(userRepository.existsByCpf("12345678901")).thenReturn(true);
+
+        assertThrows(BusinessRuleException.class, () -> userService.registerUser(dto));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     void deveRealizarLoginComSucesso() {
-
-        // Arrange
-        LoginDTO loginDTO = new LoginDTO(
-                "joao@email.com",
-                "123456"
-        );
-
-        User user = new User(
-                "João da Silva",
-                "joao@email.com",
-                "12345678901",
-                "senhaCriptografada"
-        );
-
+        LoginDTO loginDTO = new LoginDTO("joao@email.com", "123456");
+        User user = new User("João da Silva", "joao@email.com", "12345678901", "senhaCriptografada");
         Authentication authentication = mock(Authentication.class);
-
         when(authentication.getPrincipal()).thenReturn(user);
+        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+        when(jwtService.generateToken(user)).thenReturn("meu-token-jwt");
 
-        when(authenticationManager.authenticate(any()))
-                .thenReturn(authentication);
-
-        when(jwtService.generateToken(user))
-                .thenReturn("meu-token-jwt");
-
-        // Act
         String token = userService.loginUser(loginDTO);
 
-        // Assert
         assertEquals("meu-token-jwt", token);
-
         verify(authenticationManager).authenticate(any());
         verify(jwtService).generateToken(user);
     }
 
     @Test
-    void deveBuscarUsuarioPorEmail() {
-
-        // Arrange
-        User user = new User(
-                "João da Silva",
-                "joao@email.com",
-                "12345678901",
-                "senhaCriptografada"
-        );
-
-        when(userRepository.findByEmail("joao@email.com"))
-                .thenReturn(user);
-
-        // Act
-        User resultado = userService.findUserByEmail("joao@email.com");
-
-        // Assert
-        assertEquals(user, resultado);
-
-        verify(userRepository).findByEmail("joao@email.com");
-    }
-
-    @Test
-    void deveBuscarUsuarioPorId() {
-
-        // Arrange
-        User user = new User(
-                "João da Silva",
-                "joao@email.com",
-                "12345678901",
-                "senhaCriptografada"
-        );
-
+    void deveAtualizarProprioPerfil() {
+        User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
         user.setId(1L);
+        UserProfileUpdateDTO dto = new UserProfileUpdateDTO("João Pedro", "joaopedro@email.com");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail("joaopedro@email.com")).thenReturn(false);
 
-        when(userRepository.findById(1L))
-                .thenReturn(java.util.Optional.of(user));
+        var result = userService.updateOwnProfile(user, dto);
 
-        // Act
-        var resultado = userService.findUserById(1L);
-
-        // Assert
-        assertEquals("João da Silva", resultado.fullName());
-        assertEquals("joao@email.com", resultado.email());
-
-        verify(userRepository).findById(1L);
-    }
-
-    @Test
-    void deveAtualizarUsuario() {
-
-        // Arrange
-        User user = new User(
-                "João da Silva",
-                "joao@email.com",
-                "12345678901",
-                "senhaAntiga"
-        );
-
-        user.setId(1L);
-
-        UserUpdateDTO dto = new UserUpdateDTO(
-                "João Pedro",
-                "joaopedro@email.com",
-                "novaSenha"
-        );
-
-        when(userRepository.findById(1L))
-                .thenReturn(java.util.Optional.of(user));
-
-        when(passwordEncoder.encode("novaSenha"))
-                .thenReturn("senhaCriptografada");
-
-        // Act
-        userService.updateUserById(1L, dto);
-
-        // Assert
-        verify(passwordEncoder).encode("novaSenha");
+        assertEquals("João Pedro", result.fullName());
+        assertEquals("joaopedro@email.com", result.email());
         verify(userRepository).save(user);
+    }
 
-        assertEquals("João Pedro", user.getFullName());
-        assertEquals("joaopedro@email.com", user.getEmail());
-        assertEquals("senhaCriptografada", user.getPassword());
+    @Test
+    void deveAlterarSenha() {
+        User user = new User("João da Silva", "joao@email.com", "12345678901", "senhaAntiga");
+        user.setId(1L);
+        UserPasswordChangeDTO dto = new UserPasswordChangeDTO("senhaAtual", "Senha@123", "Senha@123");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("senhaAtual", "senhaAntiga")).thenReturn(true);
+        when(passwordEncoder.encode("Senha@123")).thenReturn("senhaNovaCriptografada");
+
+        userService.changeOwnPassword(user, dto);
+
+        verify(userRepository).save(user);
+        assertEquals("senhaNovaCriptografada", user.getPassword());
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoSenhasNaoConferem() {
+        User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
+        user.setId(1L);
+        UserPasswordChangeDTO dto = new UserPasswordChangeDTO("senhaAtual", "Senha@123", "Senha@456");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        assertThrows(IllegalArgumentException.class, () -> userService.changeOwnPassword(user, dto));
     }
 
     @Test
     void deveRealizarSoftDelete() {
-
-        // Arrange
-        User user = new User(
-                "João da Silva",
-                "joao@email.com",
-                "12345678901",
-                "senha"
-        );
-
+        User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
         user.setId(1L);
         user.setActive(true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(1L))
-                .thenReturn(java.util.Optional.of(user));
-
-        // Act
         userService.softDeleteAccount(1L);
 
-        // Assert
         assertEquals(false, user.getActive());
         assertNotNull(user.getDeletedAt());
-
         verify(userRepository).save(user);
     }
+
     @Test
     void deveReativarContaComSucesso() {
-
-        // Arrange
-        UserReactivateAccountDTO dto = new UserReactivateAccountDTO(
-                "joao@email.com",
-                "123456"
-        );
-
+        UserReactivateAccountDTO dto = new UserReactivateAccountDTO("joao@email.com", "123456");
         User user = new User();
         user.setEmail("joao@email.com");
         user.setPasswordHash("senhaCriptografada");
         user.setActive(false);
         user.setDeletedAt(LocalDateTime.now().minusDays(10));
         user.setFailedLoginAttempts(3);
+        when(userRepository.findOptionalByEmail("joao@email.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("123456", "senhaCriptografada")).thenReturn(true);
 
-        when(userRepository.findOptionalByEmail("joao@email.com"))
-                .thenReturn(Optional.of(user));
-
-        when(passwordEncoder.matches("123456", "senhaCriptografada"))
-                .thenReturn(true);
-
-        // Act
         userService.reactivateAccount(dto);
 
-        // Assert
         assertTrue(user.getActive());
         assertNull(user.getDeletedAt());
         assertEquals(0, user.getFailedLoginAttempts());
-
-        verify(userRepository).findOptionalByEmail("joao@email.com");
-        verify(passwordEncoder)
-                .matches("123456", "senhaCriptografada");
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoUsuarioNaoExistir() {
-
-        // Arrange
-        UserReactivateAccountDTO dto = new UserReactivateAccountDTO(
-                "joao@email.com",
-                "123456"
-        );
-
-        when(userRepository.findOptionalByEmail("joao@email.com"))
-                .thenReturn(Optional.empty());
-
-        // Act + Assert
-        assertThrows(
-                EntityNotFoundException.class,
-                () -> userService.reactivateAccount(dto)
-        );
-
-        verify(userRepository).findOptionalByEmail("joao@email.com");
-        verify(passwordEncoder, never()).matches(any(), any());
-
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoSenhaForIncorreta() {
-
-        // Arrange
-        UserReactivateAccountDTO dto = new UserReactivateAccountDTO(
-                "joao@email.com",
-                "123456"
-        );
-
-        User user = new User();
-        user.setDeletedAt(LocalDateTime.now().minusDays(5));
-        user.setActive(false);
-        user.setPasswordHash("senhaCriptografada");
-
-        when(userRepository.findOptionalByEmail("joao@email.com"))
-                .thenReturn(Optional.of(user));
-
-        when(passwordEncoder.matches("123456", "senhaCriptografada"))
-                .thenReturn(false);
-
-        // Act + Assert
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> userService.reactivateAccount(dto)
-        );
     }
 
     @Test
     void deveLancarExcecaoQuandoContaNaoPuderSerReativada() {
-
-        // Arrange
-        UserReactivateAccountDTO dto =
-                new UserReactivateAccountDTO(
-                        "joao@email.com",
-                        "123456"
-                );
-
+        UserReactivateAccountDTO dto = new UserReactivateAccountDTO("joao@email.com", "123456");
         User user = new User();
         user.setEmail("joao@email.com");
         user.setPasswordHash("senhaCriptografada");
         user.setActive(false);
         user.setDeletedAt(LocalDateTime.now().minusDays(31));
+        when(userRepository.findOptionalByEmail("joao@email.com")).thenReturn(Optional.of(user));
 
-        when(userRepository.findOptionalByEmail("joao@email.com"))
-                .thenReturn(Optional.of(user));
-
-        // Act + Assert
-        assertThrows(
-                IllegalStateException.class,
-                () -> userService.reactivateAccount(dto)
-        );
-
-        verify(userRepository)
-                .findOptionalByEmail("joao@email.com");
-
-        verify(passwordEncoder, never())
-                .matches(any(), any());
+        assertThrows(BusinessRuleException.class, () -> userService.reactivateAccount(dto));
     }
-
-
-
-
 }
