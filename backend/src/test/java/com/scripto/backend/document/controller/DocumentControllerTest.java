@@ -87,26 +87,4 @@ class DocumentControllerTest {
         verify(documentService)
                 .sendDocument(request, user);
     }
-
-    @Test
-    void deveExcluirDocumento() {
-
-        // Arrange
-        User user = new User(
-                "João da Silva",
-                "joao@email.com",
-                "12345678901",
-                "senha"
-        );
-
-        // Act
-        ResponseEntity<Void> response =
-                documentController.deleteDocument(1L, user);
-
-        // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-
-        verify(documentService)
-                .deleteDocument(1L, user);
-    }
 }

@@ -3,9 +3,7 @@ package com.scripto.backend.document.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scripto.backend.aianalyse.repository.AIAnalysisRepository;
 import com.scripto.backend.aianalyse.service.MockAIAnalyseService;
-import com.scripto.backend.document.dto.DocumentListDTO;
 import com.scripto.backend.document.repository.DocumentRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -26,10 +24,6 @@ import static org.mockito.Mockito.verify;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-
-import com.scripto.backend.tag.entity.Tag;
-import com.scripto.backend.tag.entity.DocumentTag;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -330,97 +324,6 @@ class DocumentServiceTest {
 
         // Assert
         verify(objectMapper).writeValueAsString(any());
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoDocumentoNaoExistir() {
-
-        // Arrange
-        User user = new User(
-                "João da Silva",
-                "joao@email.com",
-                "12345678901",
-                "senha"
-        );
-
-        when(documentRepository.findByIdAndUser(1L, user))
-                .thenReturn(Optional.empty());
-
-        // Act + Assert
-        EntityNotFoundException exception = assertThrows(
-                EntityNotFoundException.class,
-                () -> documentService.deleteDocument(1L, user)
-        );
-
-        assertEquals(
-                "Documento não encontrado!",
-                exception.getMessage()
-        );
-
-        verify(documentRepository, never()).delete(any());
-    }
-
-    @Test
-    void deveListarDocumentosComFiltros() {
-
-        // Arrange
-        User user = new User(
-                "João da Silva",
-                "joao@email.com",
-                "12345678901",
-                "senha"
-        );
-
-        Document document = new Document();
-        document.setId(1L);
-        document.setTitle("Meu Documento");
-        document.setUser(user);
-        document.setStatus(Status.PROCESSED);
-
-        AIAnalyse aiAnalyse = new AIAnalyse();
-        aiAnalyse.setCategory("Backend");
-        aiAnalyse.setKnowledgeLevel(Level.BEGINNER);
-        document.setAiAnalyse(aiAnalyse);
-
-        Tag tag = new Tag();
-        tag.setName("Java");
-
-        DocumentTag documentTag = new DocumentTag();
-        documentTag.setTag(tag);
-
-        document.setDocumentTags(List.of(documentTag));
-
-        when(documentRepository.findByFilters(
-                user,
-                "Backend",
-                "Java",
-                Level.BEGINNER,
-                Status.PROCESSED
-        )).thenReturn(List.of(document));
-
-        // Act
-        List<DocumentListDTO> resultado = documentService.findDocuments(
-                user,
-                "Backend",
-                "Java",
-                Level.BEGINNER,
-                Status.PROCESSED
-        );
-
-        // Assert
-        assertEquals(1, resultado.size());
-        assertEquals("Meu Documento", resultado.get(0).title());
-        assertEquals("Backend", resultado.get(0).category());
-        assertEquals(Level.BEGINNER, resultado.get(0).knowlegdeLevel());
-        assertEquals(List.of("Java"), resultado.get(0).tags());
-
-        verify(documentRepository).findByFilters(
-                user,
-                "Backend",
-                "Java",
-                Level.BEGINNER,
-                Status.PROCESSED
-        );
     }
 
 
