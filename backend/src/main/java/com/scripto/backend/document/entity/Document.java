@@ -55,6 +55,18 @@ public class Document {
     @Column(name = "training_use_allowed", nullable = false)
     private boolean trainingUseAllowed;
 
+    @Column(name = "training_use_accepted_at")
+    private LocalDateTime trainingUseAcceptedAt;
+
+    @Column(name = "training_terms_version", length = 32)
+    private String trainingTermsVersion;
+
+    @Column(name = "usage_terms_accepted_at")
+    private LocalDateTime usageTermsAcceptedAt;
+
+    @Column(name = "usage_terms_version", length = 32)
+    private String usageTermsVersion;
+
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<DocumentTag> documentTags = new ArrayList<>();
 

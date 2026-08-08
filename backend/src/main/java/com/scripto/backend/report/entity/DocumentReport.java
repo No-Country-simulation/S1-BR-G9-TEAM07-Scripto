@@ -26,7 +26,7 @@ public class DocumentReport {
     private Document document;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_user_id", nullable = false)
+    @JoinColumn(name = "reporter_user_id")
     private User reporter;
 
     @Enumerated(EnumType.STRING)

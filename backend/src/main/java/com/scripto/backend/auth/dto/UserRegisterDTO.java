@@ -1,8 +1,10 @@
 package com.scripto.backend.auth.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -19,6 +21,7 @@ public record UserRegisterDTO(
         @Schema(description = "Nome completo", example = "Maria Oliveira")
         @NotBlank
         @Size(min = 3, max = 150)
+        @Pattern(regexp = ".*\\S+\\s+\\S+.*", message = "Informe o nome completo.")
         String fullName,
 
         @Schema(description = "E-mail único da conta", example = "maria.oliveira@email.com")
@@ -34,8 +37,21 @@ public record UserRegisterDTO(
                 regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?\":{}|<>_\\-]).*$",
                 message = "A senha deve conter no mínimo um número, um caractere minúsculo, um caractere maiúsculo e um caractere especial!"
         )
-        String password
+        String password,
+
+        @Schema(description = "Confirma o aceite dos Termos de Uso e da Política de Privacidade", example = "true")
+        @NotNull(message = "É necessário informar o aceite dos Termos de Uso e da Política de Privacidade.")
+        @AssertTrue(message = "É necessário aceitar os Termos de Uso e a Política de Privacidade.")
+        Boolean termsAccepted
 ) {
+    /**
+     * Compatibilidade com chamadas Java anteriores ao campo de consentimento.
+     * Requisições HTTP continuam obrigadas a enviar termsAccepted=true pela validação do record.
+     */
+    public UserRegisterDTO(String cpf, String fullName, String email, String password) {
+        this(cpf, fullName, email, password, true);
+    }
+
     public UserRegisterDTO {
         if (cpf != null) {
             cpf = cpf.replaceAll("\\D", "");

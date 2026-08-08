@@ -45,6 +45,14 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Boolean active = true;
 
+    @Version
+    @Column(nullable = false)
+    private Long version = 0L;
+
+    @Setter
+    @Column(nullable = false)
+    private Boolean banned = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Setter
@@ -65,6 +73,18 @@ public class User implements UserDetails {
     @Setter
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Setter
+    @Column(name = "banned_at")
+    private LocalDateTime bannedAt;
+
+    @Setter
+    @Column(name = "terms_accepted_at")
+    private LocalDateTime termsAcceptedAt;
+
+    @Setter
+    @Column(name = "terms_version", length = 32)
+    private String termsVersion;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -124,25 +144,54 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return Boolean.TRUE.equals(active);
+        return Boolean.TRUE.equals(active) && !Boolean.TRUE.equals(banned);
+    }
+
+    public void acceptTerms(String version) {
+        this.termsAcceptedAt = LocalDateTime.now();
+        this.termsVersion = version;
     }
 
     public void deactivate() {
         this.active = false;
+        this.banned = false;
+        this.bannedAt = null;
         this.deletedAt = LocalDateTime.now();
     }
 
     public void reactivate() {
+        if (Boolean.TRUE.equals(banned)) {
+            throw new IllegalStateException("Conta banida não pode ser reativada pelo fluxo de recuperação.");
+        }
         this.active = true;
         this.deletedAt = null;
         this.failedLoginAttempts = 0;
     }
 
+    public void ban() {
+        this.active = false;
+        this.banned = true;
+        this.bannedAt = LocalDateTime.now();
+        // Se o próprio usuário já solicitou exclusão, o banimento não pode cancelar o prazo de 30 dias.
+    }
+
+    public void unban() {
+        this.banned = false;
+        this.bannedAt = null;
+        // Um pedido de exclusão pré-existente continua válido até reativação explícita do usuário.
+        this.active = this.deletedAt == null;
+        this.failedLoginAttempts = 0;
+    }
+
+    public boolean isPendingDeletion() {
+        return !Boolean.TRUE.equals(active) && deletedAt != null;
+    }
+
     public boolean canBeReactivated() {
-        if (deletedAt == null) {
+        if (!isPendingDeletion()) {
             return false;
         }
-        return deletedAt.plusDays(30).isAfter(LocalDateTime.now());
+        return !deletedAt.plusDays(30).isBefore(LocalDateTime.now());
     }
 
     public void registerSuccessfulLogin() {
