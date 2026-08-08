@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, Filter, LockKeyhole, RefreshCw, Search, Sparkles, Trash2 } from "lucide-react";
+import { Eye, Filter, RefreshCw, Search, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DocCard } from "@/components/common/DocCard";
 import { EmptyState, ErrorState, LoadingState } from "@/components/StatusState";
@@ -13,7 +13,7 @@ import { documentStatusLabel, levelLabel, moderationStatusLabel } from "@/lib/di
 import { friendlyError } from "@/lib/errors";
 import { useI18n } from "@/lib/i18n";
 import type { Level } from "@/services/classification.service";
-import { findDocumentById, findDocuments, type DocumentListDTO, type DocumentResponseDTO, type Status } from "@/services/documents.service";
+import { deleteDocument, findDocumentById, findDocuments, updateDocumentVisibility, type DocumentListDTO, type DocumentResponseDTO, type Status } from "@/services/documents.service";
 import { summarizeDocument, type SummaryResponseDTO } from "@/services/summary.service";
 
 export const Route = createFileRoute("/app/library")({ component: LibraryPage });
@@ -93,6 +93,36 @@ function LibraryPage() {
     }
   }
 
+
+  async function changeVisibility() {
+    if (!selected) return;
+    setError(null);
+    try {
+      const next = selected.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC";
+      const updated = await updateDocumentVisibility(selected.documentId, next);
+      setSelected(updated);
+      await load();
+      toast.success(lang === "pt-BR" ? "Visibilidade atualizada." : "Visibility updated.");
+    } catch (currentError) {
+      setError(friendlyError(currentError, t));
+    }
+  }
+
+  async function removeSelected() {
+    if (!selected) return;
+    const confirmed = window.confirm(lang === "pt-BR" ? "Excluir este documento permanentemente da sua biblioteca?" : "Permanently delete this document from your library?");
+    if (!confirmed) return;
+    setError(null);
+    try {
+      await deleteDocument(selected.documentId);
+      setSelected(null);
+      await load();
+      toast.success(lang === "pt-BR" ? "Documento excluído." : "Document deleted.");
+    } catch (currentError) {
+      setError(friendlyError(currentError, t));
+    }
+  }
+
   const filtersActive = Boolean(query || category || tag || level || status);
   function clearFilters() { setQuery(""); setCategory(""); setTag(""); setLevel(""); setStatus(""); setSort("newest"); }
 
@@ -117,7 +147,7 @@ function LibraryPage() {
             <option value="">{t("library.allLevels")}</option><option value="BEGINNER">{t("library.level.beginner")}</option><option value="INTERMEDIATE">{t("library.level.intermediate")}</option><option value="ADVANCED">{t("library.level.advanced")}</option>
           </select>
           <select value={status} onChange={(event) => setStatus(event.target.value as Status | "")} aria-label={t("library.allStatuses")} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <option value="">{t("library.allStatuses")}</option><option value="PENDING">{t("library.status.pending")}</option><option value="PROCESSING">{t("library.status.processing")}</option><option value="PROCESSED">{t("library.status.processed")}</option><option value="ERROR">{t("library.status.error")}</option>
+            <option value="">{t("library.allStatuses")}</option><option value="PENDING">{t("library.status.pending")}</option><option value="PROCESSING">{t("library.status.processing")}</option><option value="PROCESSED">{t("library.status.processed")}</option>
           </select>
           <select value={sort} onChange={(event) => setSort(event.target.value as Sort)} aria-label={lang === "pt-BR" ? "Ordenar" : "Sort"} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <option value="newest">{t("library.sort.newest")}</option><option value="oldest">{t("library.sort.oldest")}</option><option value="title">{t("library.sort.title")}</option>
@@ -126,9 +156,6 @@ function LibraryPage() {
         {filtersActive && <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={clearFilters}><Filter className="mr-1.5 h-4 w-4" aria-hidden="true" />{t("common.clearFilters")}</Button>}
       </section>
 
-      <div className="mt-5 flex items-start gap-3 rounded-xl border border-dourado/35 bg-dourado/10 p-4 text-sm text-muted-foreground">
-        <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-dourado" aria-hidden="true" /><p>{t("library.actionsPending")}</p>
-      </div>
 
       {error && <div className="mt-6"><ErrorState title={t("common.error")} description={error} onRetry={() => void load()} retryLabel={t("common.retry")} /></div>}
       <div className="mt-7">
@@ -146,7 +173,7 @@ function LibraryPage() {
             <dl className="grid gap-4 rounded-xl bg-muted/30 p-4 text-sm sm:grid-cols-2"><Data label="ID" value={selected.documentId} /><Data label="Status" value={documentStatusLabel(selected.status, t)} /><Data label={lang === "pt-BR" ? "Moderação" : "Moderation"} value={moderationStatusLabel(selected.moderationStatus, t)} /><Data label={lang === "pt-BR" ? "Uso interno autorizado" : "Internal training allowed"} value={selected.trainingUseAllowed ? t("common.yes") : t("common.no")} /></dl>
             {selected.analysis && <section><h3 className="font-serif text-xl">{t("library.analysis")}</h3><div className="mt-3 flex flex-wrap gap-2"><span className="rounded-md bg-muted px-2 py-1 text-xs">{selected.analysis.category}</span><span className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">{levelLabel(selected.analysis.difficulty, t)}</span>{selected.analysis.tags.map((value) => <span key={value} className="rounded-full bg-pessego/50 px-2 py-1 text-xs text-marrom">#{value}</span>)}</div></section>}
             <section><h3 className="font-serif text-xl">{t("library.content")}</h3><div className="mt-3 whitespace-pre-wrap break-words rounded-xl border border-border bg-muted/20 p-4 text-sm leading-7">{selected.content}</div></section>
-            <div className="flex flex-wrap gap-2 border-t border-border pt-4"><Button variant="outline" disabled title={t("common.backendPending")}><Eye className="mr-2 h-4 w-4" />{t("library.changeVisibility")}</Button><Button variant="outline" disabled title={t("common.backendPending")}><Trash2 className="mr-2 h-4 w-4" />{t("library.deleteDocument")}</Button>{selected.status === "PROCESSED" && <Button onClick={() => void requestSummary(selected.documentId)} disabled={summaryLoadingId === selected.documentId} className="bg-vinho text-vinho-foreground hover:bg-vinho/90"><Sparkles className="mr-2 h-4 w-4" />{t("library.generateSummary")}</Button>}</div>
+            <div className="flex flex-wrap gap-2 border-t border-border pt-4"><Button variant="outline" onClick={() => void changeVisibility()}><Eye className="mr-2 h-4 w-4" />{t("library.changeVisibility")}</Button><Button variant="outline" onClick={() => void removeSelected()} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t("library.deleteDocument")}</Button>{selected.status === "PROCESSED" && <Button onClick={() => void requestSummary(selected.documentId)} disabled={summaryLoadingId === selected.documentId} className="bg-vinho text-vinho-foreground hover:bg-vinho/90"><Sparkles className="mr-2 h-4 w-4" />{t("library.generateSummary")}</Button>}</div>
           </div>}
         </DialogContent>
       </Dialog>

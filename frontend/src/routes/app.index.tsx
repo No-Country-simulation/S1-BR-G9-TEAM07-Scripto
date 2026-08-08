@@ -37,7 +37,7 @@ function NewDocumentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
 
-  const formValid = useMemo(() => title.trim().length >= 3 && content.trim().length >= MIN_CONTENT && content.length <= MAX_CONTENT && usageAccepted, [title, content, usageAccepted]);
+  const formValid = useMemo(() => title.trim().length >= 3 && content.trim().length >= MIN_CONTENT && content.length <= MAX_CONTENT && usageAccepted && trainingUseAllowed, [title, content, usageAccepted, trainingUseAllowed]);
 
   const submittedDocumentId = submitted?.documentId;
   const submittedStatus = submitted?.status;
@@ -82,7 +82,7 @@ function NewDocumentPage() {
     setFields({});
     setSubmitting(true);
     try {
-      const response = await sendDocument({ title: title.trim(), content, visibility, externalAiAllowed, trainingUseAllowed });
+      const response = await sendDocument({ title: title.trim(), content, visibility, externalAiAllowed, trainingUseAllowed, usageTermsAccepted: usageAccepted });
       setSubmitted(response);
     } catch (currentError) {
       setFields({ title: fieldError(currentError, "title") || "", content: fieldError(currentError, "content") || "" });
@@ -156,7 +156,7 @@ function NewDocumentPage() {
             </select>
           </div>
           <Consent checked={externalAiAllowed} onChange={setExternalAiAllowed} label={t("new.externalAi")} />
-          <Consent checked={trainingUseAllowed} onChange={setTrainingUseAllowed} label={t("new.training")} hint={t("new.training.help")} />
+          <Consent checked={trainingUseAllowed} onChange={setTrainingUseAllowed} label={t("new.training")} hint={t("new.training.help")} required />
           <Consent checked={usageAccepted} onChange={setUsageAccepted} label={lang === "pt-BR" ? "Confirmo que tenho autorização para armazenar este conteúdo e aceito os Termos e a Política de Privacidade." : "I confirm that I am authorized to store this content and accept the Terms and Privacy Policy."} required />
         </section>
 
