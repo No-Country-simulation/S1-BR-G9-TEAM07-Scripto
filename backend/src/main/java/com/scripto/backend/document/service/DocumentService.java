@@ -24,10 +24,13 @@ import com.scripto.backend.exception.ResourceNotFoundException;
 import com.scripto.backend.tag.service.TagService;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.vector.VectorStore;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -183,5 +186,18 @@ public class DocumentService {
         } catch (Exception exception) {
             return List.of();
         }
+    }
+
+    @Transactional
+    public void deleteDocument(Long documentId, User user) {
+        Document document = documentRepository.findByIdAndUser(documentId, user)
+                .orElseThrow(() -> new EntityNotFoundException("Documento não encontrado!"));
+        documentRepository.delete(document);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<DocumentListDTO> findAllDocuments(Pageable pageable) {
+        var documents = documentRepository.findAll(pageable);
+        return documents.map(DocumentListDTO::new);
     }
 }

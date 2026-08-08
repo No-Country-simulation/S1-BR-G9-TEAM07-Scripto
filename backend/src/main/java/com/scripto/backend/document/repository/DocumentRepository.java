@@ -6,6 +6,7 @@ import com.scripto.backend.document.domain.Status;
 import com.scripto.backend.document.domain.Visibility;
 import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.user.entity.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -102,4 +103,11 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             ModerationStatus moderationStatus,
             Status status
     );
+
+    @EntityGraph(attributePaths = {
+            "aiAnalyse",
+            "documentTags",
+            "documentTags.tag"
+    })
+    Page<Document> findAll(Pageable pageable);
 }

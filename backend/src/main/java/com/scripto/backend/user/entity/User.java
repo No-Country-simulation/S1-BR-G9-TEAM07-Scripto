@@ -55,7 +55,7 @@ public class User implements UserDetails {
     private Integer failedLoginAttempts = 0;
 
     @Setter
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Document> documents;
 
     @Setter
