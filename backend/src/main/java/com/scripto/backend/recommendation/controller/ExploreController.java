@@ -38,7 +38,7 @@ public class ExploreController {
     @GetMapping("/recommendations")
     public ResponseEntity<List<RecommendationDTO>> recommendations(
             @Parameter(hidden = true) @AuthenticationPrincipal User user,
-            @Parameter(description = "Quantidade máxima de recomendações", example = "10") @RequestParam(defaultValue = "10") int limit
+            @Parameter(description = "Quantidade máxima de recomendações", example = "3") @RequestParam(defaultValue = "3") int limit
     ) {
         return ResponseEntity.ok(service.recommend(user, limit));
     }

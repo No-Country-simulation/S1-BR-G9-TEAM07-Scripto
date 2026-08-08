@@ -33,19 +33,14 @@ public class RecommendationService {
 
     public List<RecommendationDTO> recommend(Long documentId, User user, int limit) {
         Document source = documentService.loadDetailedOwned(documentId, user);
-        int resolvedLimit = Math.max(1, Math.min(limit, 20));
+        int resolvedLimit = Math.max(1, Math.min(limit, 3));
         List<SimilarDocument> similarities = vectorStore.findSimilar(documentId, Math.max(resolvedLimit * 4, 20));
         List<Long> candidateIds = similarities.stream().map(SimilarDocument::documentId).toList();
         if (candidateIds.isEmpty()) {
             return List.of();
         }
         Map<Long, Document> documents = documentRepository
-                .findByIdInAndVisibilityAndModerationStatusAndStatus(
-                        candidateIds,
-                        Visibility.PUBLIC,
-                        ModerationStatus.APPROVED,
-                        Status.PROCESSED
-                )
+                .findPublicDetailedByIdsExcludingUser(candidateIds, user)
                 .stream()
                 .collect(Collectors.toMap(Document::getId, Function.identity()));
 

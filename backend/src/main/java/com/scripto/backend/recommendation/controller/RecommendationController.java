@@ -36,7 +36,7 @@ public class RecommendationController {
     @GetMapping
     public ResponseEntity<List<RecommendationDTO>> recommend(
             @Parameter(description = "ID do documento de referência", example = "42") @PathVariable Long documentId,
-            @Parameter(description = "Quantidade máxima de recomendações", example = "10") @RequestParam(defaultValue = "10") int limit,
+            @Parameter(description = "Quantidade máxima de recomendações", example = "3") @RequestParam(defaultValue = "3") int limit,
             @Parameter(hidden = true) @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(recommendationService.recommend(documentId, user, limit));

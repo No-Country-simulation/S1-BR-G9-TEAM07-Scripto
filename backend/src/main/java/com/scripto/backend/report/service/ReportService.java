@@ -1,6 +1,7 @@
 package com.scripto.backend.report.service;
 
 import com.scripto.backend.document.domain.ModerationStatus;
+import com.scripto.backend.document.domain.Status;
 import com.scripto.backend.document.domain.Visibility;
 import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.document.repository.DocumentRepository;
@@ -31,11 +32,11 @@ public class ReportService {
 
     @Transactional
     public ReportResponseDTO report(Long documentId, ReportRequestDTO request, User reporter) {
-        Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Documento não encontrado."));
-        if (document.getVisibility() != Visibility.PUBLIC) {
-            throw new ResourceNotFoundException("Documento não encontrado.");
-        }
+        Document document = documentRepository
+                .findByIdAndVisibilityAndModerationStatusAndStatus(
+                        documentId, Visibility.PUBLIC, ModerationStatus.APPROVED, Status.PROCESSED
+                )
+                .orElseThrow(() -> new ResourceNotFoundException("Documento público não encontrado."));
         if (document.getUser().getId().equals(reporter.getId())) {
             throw new BusinessRuleException("Você não pode denunciar o próprio documento.");
         }
@@ -60,13 +61,16 @@ public class ReportService {
     public ReportResponseDTO review(Long reportId, ReportReviewDTO request, User admin) {
         DocumentReport report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Denúncia não encontrada."));
+        if (report.getStatus() != ReportStatus.OPEN) {
+            throw new BusinessRuleException("Esta denúncia já foi encerrada.");
+        }
         if (request.status() == ReportStatus.OPEN) {
-            throw new IllegalArgumentException("A revisão deve encerrar a denúncia.");
+            throw new BusinessRuleException("A revisão deve encerrar a denúncia.");
         }
         report.setStatus(request.status());
         report.setReviewedBy(admin);
         report.setReviewedAt(LocalDateTime.now());
-        if (request.blockDocument()) {
+        if (request.status() == ReportStatus.ACTIONED) {
             report.getDocument().setModerationStatus(ModerationStatus.BLOCKED);
             documentRepository.save(report.getDocument());
         }
@@ -77,7 +81,7 @@ public class ReportService {
         return new ReportResponseDTO(
                 report.getId(),
                 report.getDocument().getId(),
-                report.getReporter().getId(),
+                report.getReporter() == null ? null : report.getReporter().getId(),
                 report.getReason(),
                 report.getDetails(),
                 report.getStatus(),

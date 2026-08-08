@@ -25,7 +25,7 @@ public class ExploreRecommendationService {
 
     @Transactional(readOnly = true)
     public List<RecommendationDTO> recommend(User user, int limit) {
-        int resolvedLimit = Math.max(1, Math.min(limit, 20));
+        int resolvedLimit = Math.max(1, Math.min(limit, 3));
         List<Document> library = documentRepository.findByFilters(user, null, null, null, Status.PROCESSED);
         Map<String, Integer> categoryFrequency = new HashMap<>();
         Map<String, Integer> tagFrequency = new HashMap<>();
