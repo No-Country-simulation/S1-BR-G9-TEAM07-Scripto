@@ -47,10 +47,11 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/user/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/register/").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/document/public/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/docs", "/docs/**", "/logo-bege.svg").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/reactivate/").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/reactivate").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/user/suspended/password").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/user/suspended/password/").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception

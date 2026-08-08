@@ -1,5 +1,6 @@
 package com.scripto.backend.user.repository;
 
+import com.scripto.backend.user.entity.Role;
 import com.scripto.backend.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -17,4 +18,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByCpf(String cpf);
 
     List<User> findAllByActiveFalseAndDeletedAtBefore(LocalDateTime date);
+
+    long countByActiveFalse();
+
+    long countByRole(Role role);
+
+    long countByRoleAndActiveTrueAndBannedFalse(Role role);
 }
