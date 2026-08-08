@@ -8,7 +8,11 @@ import com.scripto.backend.classification.domain.FinalClassification;
 import com.scripto.backend.document.domain.ModerationStatus;
 import com.scripto.backend.document.domain.Status;
 import com.scripto.backend.document.dto.DocumentRequestDTO;
+import com.scripto.backend.document.error.entity.DocumentProcessingError;
+import com.scripto.backend.document.error.repository.DocumentProcessingErrorRepository;
 import com.scripto.backend.document.entity.Document;
+import com.scripto.backend.classification.exception.ClassificationUnavailableException;
+import com.scripto.backend.exception.AiRetentionUnavailableException;
 import com.scripto.backend.document.repository.DocumentRepository;
 import com.scripto.backend.tag.service.TagService;
 import com.scripto.backend.user.entity.User;
@@ -20,21 +24,26 @@ import java.util.Map;
 
 @Service
 public class DocumentPersistenceService {
+    private static final String CURRENT_TRAINING_TERMS_VERSION = "2026-08-08";
+    private static final String CURRENT_USAGE_TERMS_VERSION = "2026-08-08";
     private final DocumentRepository documentRepository;
     private final AIAnalysisRepository analysisRepository;
     private final TagService tagService;
     private final ObjectMapper objectMapper;
+    private final DocumentProcessingErrorRepository processingErrorRepository;
 
     public DocumentPersistenceService(
             DocumentRepository documentRepository,
             AIAnalysisRepository analysisRepository,
             TagService tagService,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            DocumentProcessingErrorRepository processingErrorRepository
     ) {
         this.documentRepository = documentRepository;
         this.analysisRepository = analysisRepository;
         this.tagService = tagService;
         this.objectMapper = objectMapper;
+        this.processingErrorRepository = processingErrorRepository;
     }
 
     @Transactional
@@ -46,6 +55,14 @@ public class DocumentPersistenceService {
         document.setModerationStatus(ModerationStatus.APPROVED);
         document.setExternalAiAllowed(request.allowsExternalAi());
         document.setTrainingUseAllowed(request.allowsTrainingUse());
+        if (request.allowsTrainingUse()) {
+            document.setTrainingUseAcceptedAt(java.time.LocalDateTime.now());
+            document.setTrainingTermsVersion(CURRENT_TRAINING_TERMS_VERSION);
+        }
+        if (request.acceptsUsageTerms()) {
+            document.setUsageTermsAcceptedAt(java.time.LocalDateTime.now());
+            document.setUsageTermsVersion(CURRENT_USAGE_TERMS_VERSION);
+        }
         return documentRepository.saveAndFlush(document);
     }
 
@@ -99,10 +116,18 @@ public class DocumentPersistenceService {
     }
 
     @Transactional
-    public void markError(Long documentId) {
-        documentRepository.findById(documentId).ifPresent(document -> {
-            document.setStatus(Status.ERROR);
-            documentRepository.save(document);
-        });
+    public void discardFailed(Long documentId, RuntimeException exception) {
+        documentRepository.findById(documentId).ifPresent(documentRepository::delete);
+        processingErrorRepository.save(new DocumentProcessingError(toSafeFailureReason(exception)));
+    }
+
+    private String toSafeFailureReason(RuntimeException exception) {
+        if (exception instanceof ClassificationUnavailableException) {
+            return "CLASSIFICATION_UNAVAILABLE";
+        }
+        if (exception instanceof AiRetentionUnavailableException) {
+            return "AI_RETENTION_UNAVAILABLE";
+        }
+        return exception.getClass().getSimpleName().replaceAll("[^A-Za-z0-9_]", "_").toUpperCase();
     }
 }

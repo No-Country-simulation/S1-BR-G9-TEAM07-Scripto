@@ -37,9 +37,12 @@ public class DocumentController {
 
     @Operation(summary = "Enviar documento", description = "Salva um documento e inicia seu processamento e classificação.")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Documento criado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados do documento inválidos"),
-            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido")
+            @ApiResponse(responseCode = "201", description = "Documento processado e criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "JSON inválido"),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
+            @ApiResponse(responseCode = "409", description = "Regra de negócio impede o envio"),
+            @ApiResponse(responseCode = "422", description = "Campos ou consentimentos inválidos"),
+            @ApiResponse(responseCode = "503", description = "Classificação ou retenção do corpus de IA indisponível")
     })
     @SecurityRequirement(name = SecurityConfigurations.SECURITY)
     @PostMapping
@@ -50,11 +53,13 @@ public class DocumentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(documentService.sendDocument(request, user));
     }
 
-    @Operation(summary = "Consultar documento público por ID", description = "Retorna um documento público sem exigir autenticação.")
+    @Operation(summary = "Consultar documento público por ID", description = "Retorna um documento público para um usuário autenticado.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Documento encontrado"),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
             @ApiResponse(responseCode = "404", description = "Documento público não encontrado")
     })
+    @SecurityRequirement(name = SecurityConfigurations.SECURITY)
     @GetMapping("/public/{documentId}")
     public ResponseEntity<PublicDocumentDTO> findPublicById(
             @Parameter(description = "ID do documento", example = "42") @PathVariable Long documentId
@@ -84,8 +89,7 @@ public class DocumentController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Documento encontrado"),
             @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
-            @ApiResponse(responseCode = "403", description = "Usuário sem acesso ao documento"),
-            @ApiResponse(responseCode = "404", description = "Documento não encontrado")
+            @ApiResponse(responseCode = "404", description = "Documento não encontrado ou não pertence ao usuário")
     })
     @SecurityRequirement(name = SecurityConfigurations.SECURITY)
     @GetMapping("/{documentId}")
@@ -116,11 +120,11 @@ public class DocumentController {
     @Operation(summary = "Alterar visibilidade do documento", description = "Permite ao proprietário alternar a visibilidade entre PUBLIC e PRIVATE.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Visibilidade alterada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Valor de visibilidade inválido"),
+            @ApiResponse(responseCode = "400", description = "JSON ou valor de enum inválido"),
             @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
-            @ApiResponse(responseCode = "403", description = "Usuário não é proprietário do documento"),
-            @ApiResponse(responseCode = "404", description = "Documento não encontrado"),
-            @ApiResponse(responseCode = "409", description = "Documento bloqueado não pode se tornar público")
+            @ApiResponse(responseCode = "404", description = "Documento não encontrado ou não pertence ao usuário"),
+            @ApiResponse(responseCode = "409", description = "Documento bloqueado não pode se tornar público"),
+            @ApiResponse(responseCode = "422", description = "Campo de visibilidade inválido")
     })
     @SecurityRequirement(name = SecurityConfigurations.SECURITY)
     @PatchMapping("/{documentId}/visibility")
@@ -134,9 +138,10 @@ public class DocumentController {
 
     @Operation(summary = "Excluir documento", description = "Permite ao proprietário do documento, excluí-lo.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Documento excluído com sucesso"),
+            @ApiResponse(responseCode = "204", description = "Documento excluído do MySQL com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Usuário não é proprietário do documento"),
-            @ApiResponse(responseCode = "404", description = "Documento não encontrado")
+            @ApiResponse(responseCode = "404", description = "Documento não encontrado ou não pertence ao usuário")
     })
     @SecurityRequirement(name = SecurityConfigurations.SECURITY)
     @DeleteMapping("/{id}")
