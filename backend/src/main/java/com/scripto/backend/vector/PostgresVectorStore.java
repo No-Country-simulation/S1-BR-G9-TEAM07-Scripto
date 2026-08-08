@@ -7,6 +7,7 @@ import com.scripto.backend.classification.domain.ClassificationSource;
 import com.scripto.backend.classification.domain.FinalClassification;
 import com.scripto.backend.classification.domain.LocalClassificationResult;
 import com.scripto.backend.document.domain.Visibility;
+import com.scripto.backend.exception.AiRetentionUnavailableException;
 import com.scripto.backend.vector.domain.SimilarDocument;
 import com.scripto.backend.vector.domain.TrainingCandidateView;
 import jakarta.annotation.PostConstruct;
@@ -17,6 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
@@ -32,15 +34,19 @@ import java.util.Locale;
 @ConditionalOnProperty(name = "scripto.vector.enabled", havingValue = "true", matchIfMissing = true)
 public class PostgresVectorStore implements VectorStore {
     private static final Logger log = LoggerFactory.getLogger(PostgresVectorStore.class);
+    private static final String CURRENT_TRAINING_CONSENT_VERSION = "2026-08-08";
 
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final TransactionTemplate transactionTemplate;
 
     public PostgresVectorStore(
             @Qualifier("postgresVectorJdbcTemplate") JdbcTemplate jdbcTemplate,
+            @Qualifier("postgresVectorTransactionTemplate") TransactionTemplate transactionTemplate,
             ObjectMapper objectMapper
     ) {
         this.jdbcTemplate = jdbcTemplate;
+        this.transactionTemplate = transactionTemplate;
         this.objectMapper = objectMapper;
     }
 
@@ -78,7 +84,11 @@ public class PostgresVectorStore implements VectorStore {
                         title_snapshot TEXT,
                         content_snapshot TEXT,
                         local_result JSONB,
-                        nemotron_result JSONB NOT NULL,
+                        nemotron_result JSONB,
+                        final_source VARCHAR(30) NOT NULL,
+                        final_result JSONB NOT NULL,
+                        training_consent_version VARCHAR(32) NOT NULL DEFAULT 'legacy-consented',
+                        training_consent_recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                         status VARCHAR(30) NOT NULL DEFAULT 'CANDIDATE',
                         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                         reviewed_at TIMESTAMPTZ,
@@ -88,6 +98,16 @@ public class PostgresVectorStore implements VectorStore {
                     """);
             jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_document_embeddings_hnsw ON document_embeddings USING hnsw (embedding vector_cosine_ops)");
             jdbcTemplate.execute("ALTER TABLE training_candidates ADD COLUMN IF NOT EXISTS reviewed_by_user_id BIGINT");
+            jdbcTemplate.execute("ALTER TABLE training_candidates ADD COLUMN IF NOT EXISTS final_source VARCHAR(30)");
+            jdbcTemplate.execute("ALTER TABLE training_candidates ADD COLUMN IF NOT EXISTS final_result JSONB");
+            jdbcTemplate.execute("ALTER TABLE training_candidates ADD COLUMN IF NOT EXISTS training_consent_version VARCHAR(32) NOT NULL DEFAULT 'legacy-consented'");
+            jdbcTemplate.execute("ALTER TABLE training_candidates ADD COLUMN IF NOT EXISTS training_consent_recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()");
+            jdbcTemplate.execute("ALTER TABLE training_candidates ALTER COLUMN nemotron_result DROP NOT NULL");
+            jdbcTemplate.execute("UPDATE training_candidates SET final_source = COALESCE(final_source, 'NEMOTRON'), final_result = COALESCE(final_result, nemotron_result) WHERE final_source IS NULL OR final_result IS NULL");
+            jdbcTemplate.execute("ALTER TABLE training_candidates ALTER COLUMN final_source SET NOT NULL");
+            jdbcTemplate.execute("ALTER TABLE training_candidates ALTER COLUMN final_result SET NOT NULL");
+            // O corpus de IA não deve preservar vínculo com identidade dos usuários/admins do MySQL.
+            jdbcTemplate.execute("UPDATE training_candidates SET reviewed_by_user_id = NULL WHERE reviewed_by_user_id IS NOT NULL");
             jdbcTemplate.execute("CREATE UNIQUE INDEX IF NOT EXISTS uk_training_candidates_content_hash ON training_candidates(content_hash)");
             jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_training_candidates_status ON training_candidates(status)");
         } catch (DataAccessException exception) {
@@ -108,59 +128,77 @@ public class PostgresVectorStore implements VectorStore {
             boolean trainingUseAllowed,
             FinalClassification classification
     ) {
+        final String finalJson;
+        final String localJson;
+        final String reasonsJson;
         try {
-            if (classification.embedding() != null) {
-                jdbcTemplate.update("""
-                                INSERT INTO document_embeddings(document_id, embedding, model_version)
-                                VALUES (?, ?, ?)
-                                ON CONFLICT (document_id) DO UPDATE
-                                SET embedding = EXCLUDED.embedding,
-                                    model_version = EXCLUDED.model_version,
-                                    updated_at = NOW()
-                                """,
-                        documentId,
-                        new PGvector(classification.embedding()),
-                        classification.modelVersion() == null ? "unknown" : classification.modelVersion()
-                );
-            }
-            String finalJson = serializeFinalResult(classification);
-            String localJson = classification.localAttempt() == null
+            finalJson = serializeFinalResult(classification);
+            localJson = classification.localAttempt() == null
                     ? null
                     : serializeLocalResult(classification.localAttempt());
-            String reasonsJson = objectMapper.writeValueAsString(classification.fallbackReasons());
-            jdbcTemplate.update("""
-                            INSERT INTO inference_events(
-                                document_id, final_source, local_model_version, external_model,
-                                fallback_reasons, local_result, final_result
-                            ) VALUES (?, ?, ?, ?, ?::jsonb, ?::jsonb, ?::jsonb)
-                            """,
-                    documentId,
-                    classification.source().name(),
-                    classification.modelVersion(),
-                    classification.externalModel(),
-                    reasonsJson,
-                    localJson,
-                    finalJson
-            );
+            reasonsJson = objectMapper.writeValueAsString(classification.fallbackReasons());
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Could not serialize AI retention data", exception);
+        }
 
-            if (classification.source() == ClassificationSource.NEMOTRON && trainingUseAllowed) {
+        try {
+            transactionTemplate.executeWithoutResult(transactionStatus -> {
+                if (classification.embedding() != null) {
+                    jdbcTemplate.update("""
+                                    INSERT INTO document_embeddings(document_id, embedding, model_version)
+                                    VALUES (?, ?, ?)
+                                    ON CONFLICT (document_id) DO UPDATE
+                                    SET embedding = EXCLUDED.embedding,
+                                        model_version = EXCLUDED.model_version,
+                                        updated_at = NOW()
+                                    """,
+                            documentId,
+                            new PGvector(classification.embedding()),
+                            classification.modelVersion() == null ? "unknown" : classification.modelVersion()
+                    );
+                }
+
                 jdbcTemplate.update("""
-                                INSERT INTO training_candidates(
-                                    document_id, content_hash, title_snapshot, content_snapshot,
-                                    local_result, nemotron_result, status
-                                ) VALUES (?, ?, ?, ?, ?::jsonb, ?::jsonb, 'CANDIDATE')
-                                ON CONFLICT (content_hash) DO NOTHING
+                                INSERT INTO inference_events(
+                                    document_id, final_source, local_model_version, external_model,
+                                    fallback_reasons, local_result, final_result
+                                ) VALUES (?, ?, ?, ?, ?::jsonb, ?::jsonb, ?::jsonb)
                                 """,
                         documentId,
-                        contentHash(title, content),
-                        title,
-                        content,
+                        classification.source().name(),
+                        classification.modelVersion(),
+                        classification.externalModel(),
+                        reasonsJson,
                         localJson,
                         finalJson
                 );
-            }
-        } catch (DataAccessException | JsonProcessingException exception) {
-            log.warn("Could not persist vector telemetry for document {}: {}", documentId, exception.getMessage());
+
+                if (trainingUseAllowed) {
+                    String nemotronJson = classification.source() == ClassificationSource.NEMOTRON ? finalJson : null;
+                    jdbcTemplate.update("""
+                                    INSERT INTO training_candidates(
+                                        document_id, content_hash, title_snapshot, content_snapshot,
+                                        local_result, nemotron_result, final_source, final_result,
+                                        training_consent_version, training_consent_recorded_at, status
+                                    ) VALUES (?, ?, ?, ?, ?::jsonb, ?::jsonb, ?, ?::jsonb, ?, NOW(), 'CANDIDATE')
+                                    ON CONFLICT (content_hash) DO NOTHING
+                                    """,
+                            documentId,
+                            contentHash(title, content),
+                            title,
+                            content,
+                            localJson,
+                            nemotronJson,
+                            classification.source().name(),
+                            finalJson,
+                            CURRENT_TRAINING_CONSENT_VERSION
+                    );
+                }
+            });
+        } catch (RuntimeException exception) {
+            throw new AiRetentionUnavailableException(
+                    "Não foi possível persistir a cópia consentida do documento para o modelo interno.", exception
+            );
         }
     }
 
@@ -201,6 +239,7 @@ public class PostgresVectorStore implements VectorStore {
                             SELECT id, document_id, content_hash, title_snapshot, content_snapshot,
                                    local_result::text AS local_result_json,
                                    nemotron_result::text AS nemotron_result_json,
+                                   final_source, final_result::text AS final_result_json,
                                    status, reviewed_by_user_id, created_at, reviewed_at
                             FROM training_candidates
                             WHERE status = ?
@@ -217,7 +256,11 @@ public class PostgresVectorStore implements VectorStore {
                                     resultSet.getString("title_snapshot"),
                                     resultSet.getString("content_snapshot"),
                                     localResult == null ? null : objectMapper.readTree(localResult),
-                                    objectMapper.readTree(resultSet.getString("nemotron_result_json")),
+                                    resultSet.getString("nemotron_result_json") == null
+                                            ? null
+                                            : objectMapper.readTree(resultSet.getString("nemotron_result_json")),
+                                    resultSet.getString("final_source"),
+                                    objectMapper.readTree(resultSet.getString("final_result_json")),
                                     resultSet.getString("status"),
                                     resultSet.getObject("reviewed_by_user_id", Long.class),
                                     resultSet.getObject("created_at", OffsetDateTime.class),
@@ -246,9 +289,9 @@ public class PostgresVectorStore implements VectorStore {
                 UPDATE training_candidates
                 SET status = ?,
                     reviewed_at = CASE WHEN ? IN ('APPROVED', 'REJECTED') THEN NOW() ELSE reviewed_at END,
-                    reviewed_by_user_id = CASE WHEN ? IN ('APPROVED', 'REJECTED') THEN ? ELSE reviewed_by_user_id END
+                    reviewed_by_user_id = NULL
                 WHERE id = ?
-                """, normalized, normalized, normalized, reviewedByUserId, candidateId);
+                """, normalized, normalized, candidateId);
     }
 
     @Override
@@ -256,7 +299,7 @@ public class PostgresVectorStore implements VectorStore {
         try {
             List<String> lines = jdbcTemplate.query(
                     """
-                    SELECT title_snapshot, content_snapshot, nemotron_result::text AS result_json
+                    SELECT title_snapshot, content_snapshot, final_result::text AS result_json
                     FROM training_candidates
                     WHERE status = 'APPROVED'
                       AND title_snapshot IS NOT NULL
