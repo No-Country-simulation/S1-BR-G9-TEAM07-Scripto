@@ -17,11 +17,11 @@ export function isCpfShapeValid(value: string): boolean {
 }
 
 export const passwordRules = {
-  length: (value: string) => value.length >= 8,
+  length: (value: string) => value.length >= 8 && value.length <= 15,
   upper: (value: string) => /[A-Z]/.test(value),
   lower: (value: string) => /[a-z]/.test(value),
   number: (value: string) => /\d/.test(value),
-  symbol: (value: string) => /[^A-Za-z0-9]/.test(value),
+  symbol: (value: string) => /[!@#$%^&*(),.?":{}|<>_\-]/.test(value),
 };
 
 export function isStrongPassword(value: string): boolean {

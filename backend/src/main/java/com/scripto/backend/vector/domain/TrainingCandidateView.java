@@ -12,6 +12,8 @@ public record TrainingCandidateView(
         String content,
         JsonNode localResult,
         JsonNode nemotronResult,
+        String finalSource,
+        JsonNode finalResult,
         String status,
         Long reviewedByUserId,
         OffsetDateTime createdAt,

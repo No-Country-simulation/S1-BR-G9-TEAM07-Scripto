@@ -25,9 +25,11 @@ import com.scripto.backend.tag.service.TagService;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.vector.VectorStore;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -57,6 +59,13 @@ public class DocumentService {
     }
 
     public DocumentResponseDTO sendDocument(@Valid DocumentRequestDTO request, User user) {
+        if (!request.allowsTrainingUse()) {
+            throw new BusinessRuleException("É necessário aceitar o uso do documento para o modelo interno antes da análise.");
+        }
+        if (!request.acceptsUsageTerms()) {
+            throw new BusinessRuleException("É necessário aceitar os Termos e a Política de Privacidade antes do envio.");
+        }
+
         Document document = persistenceService.createPending(request, user);
         persistenceService.markProcessing(document.getId());
         try {
@@ -76,7 +85,7 @@ public class DocumentService {
             );
             return toResponse(loadDetailedOwned(document.getId(), user));
         } catch (RuntimeException exception) {
-            persistenceService.markError(document.getId());
+            persistenceService.discardFailed(document.getId(), exception);
             throw exception;
         }
     }
@@ -95,6 +104,9 @@ public class DocumentService {
     }
 
     public List<DocumentListDTO> findDocuments(User user, String category, String tag, Level level, Status status) {
+        if (status == Status.ERROR) {
+            return List.of();
+        }
         String normalizedTag = tag == null ? null : tagService.normalizeKey(tag);
         return documentRepository.findByFilters(user, category, normalizedTag, level, status)
                 .stream()
@@ -123,10 +135,22 @@ public class DocumentService {
     }
 
     public List<PublicDocumentDTO> listPublicDocuments(User currentUser, String category, String tag, Level difficulty, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(1, Math.min(size, 100));
+        Pageable pageable = PageRequest.of(safePage, safeSize);
         String normalizedTag = tag == null ? null : tagService.normalizeKey(tag);
-        return documentRepository.findPublicDocuments(category, normalizedTag, difficulty, currentUser, pageable)
-                .stream()
+        List<Long> ids = documentRepository.findPublicDocumentIds(
+                category, normalizedTag, difficulty, currentUser, pageable
+        );
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        var order = new java.util.HashMap<Long, Integer>();
+        for (int index = 0; index < ids.size(); index++) {
+            order.put(ids.get(index), index);
+        }
+        return documentRepository.findPublicDetailedByIdsExcludingUser(ids, currentUser).stream()
+                .sorted(java.util.Comparator.comparingInt(document -> order.getOrDefault(document.getId(), Integer.MAX_VALUE)))
                 .map(PublicDocumentDTO::new)
                 .toList();
     }
@@ -183,5 +207,18 @@ public class DocumentService {
         } catch (Exception exception) {
             return List.of();
         }
+    }
+
+    @Transactional
+    public void deleteDocument(Long documentId, User user) {
+        Document document = documentRepository.findByIdAndUser(documentId, user)
+                .orElseThrow(() -> new ResourceNotFoundException("Documento não encontrado."));
+        documentRepository.delete(document);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<DocumentListDTO> findAllDocuments(Pageable pageable) {
+        var documents = documentRepository.findAll(pageable);
+        return documents.map(DocumentListDTO::new);
     }
 }

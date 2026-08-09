@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { FileText, Flag, ShieldOff, Users } from "lucide-react";
+import { CheckCircle2, FileText, Flag, ShieldOff, Users } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { ErrorState, LoadingState } from "@/components/StatusState";
 import { friendlyError } from "@/lib/errors";
@@ -10,20 +10,16 @@ import { getAdminMetrics, type AdminMetrics } from "@/services/admin.service";
 export const Route = createFileRoute("/admin/")({ component: AdminOverview });
 
 function AdminOverview() {
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      setMetrics(await getAdminMetrics());
-    } catch (currentError) {
-      setError(friendlyError(currentError, t));
-    } finally {
-      setLoading(false);
-    }
+    try { setMetrics(await getAdminMetrics()); }
+    catch (currentError) { setError(friendlyError(currentError, t)); }
+    finally { setLoading(false); }
   }, [t]);
 
   useEffect(() => { void load(); }, [load]);
@@ -32,7 +28,13 @@ function AdminOverview() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
       <PageHeader eyebrow={t("admin.overview.eyebrow")} title={t("admin.overview.title")} description={t("admin.overview.subtitle")} />
       {loading ? <div className="mt-8"><LoadingState label={t("common.loading")} /></div> : error ? <div className="mt-8"><ErrorState title={t("common.error")} description={error} onRetry={() => void load()} retryLabel={t("common.retry")} /></div> : (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Metric icon={Users} label={t("admin.metric.users")} value={metrics?.users ?? t("admin.metric.pending")} /><Metric icon={ShieldOff} label={t("admin.metric.suspended")} value={metrics?.suspendedUsers ?? t("admin.metric.pending")} /><Metric icon={FileText} label={t("admin.metric.documents")} value={metrics?.documents ?? t("admin.metric.pending")} /><Metric icon={Flag} label={t("admin.metric.reports")} value={metrics?.reportsOpen ?? 0} /></div>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <Metric icon={Users} label={t("admin.metric.users")} value={metrics?.totalUsers ?? 0} />
+          <Metric icon={ShieldOff} label={t("admin.metric.suspended")} value={metrics?.suspendedUsers ?? 0} />
+          <Metric icon={FileText} label={t("admin.metric.documents")} value={metrics?.totalDocuments ?? 0} />
+          <Metric icon={Flag} label={lang === "pt-BR" ? "Denúncias abertas" : "Open reports"} value={metrics?.openReports ?? 0} />
+          <Metric icon={CheckCircle2} label={lang === "pt-BR" ? "Denúncias fechadas" : "Closed reports"} value={metrics?.closedReports ?? 0} />
+        </div>
       )}
     </div>
   );

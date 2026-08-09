@@ -29,3 +29,13 @@ export async function updateOwnProfile(request: UserProfileUpdateDTO): Promise<U
 export async function changeOwnPassword(request: UserPasswordChangeDTO): Promise<void> {
   return apiRequest<void>({ method: "PATCH", url: "/user/me/password", data: request });
 }
+
+export type UserProfileStatsDTO = {
+  totalProcessedDocuments: number;
+  mostFrequentCategory: string | null;
+  mostFrequentLevel: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | null;
+};
+
+export async function getOwnStatistics(): Promise<UserProfileStatsDTO> {
+  return apiRequest<UserProfileStatsDTO>({ method: "GET", url: "/user/me/statistics" });
+}

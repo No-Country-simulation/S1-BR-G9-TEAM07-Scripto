@@ -1,8 +1,10 @@
 package com.scripto.backend.summary.service;
 
 import com.scripto.backend.classification.nemotron.NemotronClient;
+import com.scripto.backend.document.domain.Status;
 import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.document.service.DocumentService;
+import com.scripto.backend.exception.BusinessRuleException;
 import com.scripto.backend.summary.dto.SummaryResponseDTO;
 import com.scripto.backend.summary.entity.DocumentSummary;
 import com.scripto.backend.summary.repository.DocumentSummaryRepository;
@@ -32,6 +34,9 @@ public class SummaryService {
     @Transactional
     public SummaryResponseDTO summarize(Long documentId, User user) {
         Document document = documentService.loadDetailedOwned(documentId, user);
+        if (document.getStatus() != Status.PROCESSED) {
+            throw new BusinessRuleException("O resumo só pode ser solicitado após o processamento do documento.");
+        }
         return summaryRepository.findByDocument(document)
                 .map(summary -> toResponse(summary, true, quotaService.remaining(user)))
                 .orElseGet(() -> createSummary(document, user));
@@ -39,7 +44,7 @@ public class SummaryService {
 
     private SummaryResponseDTO createSummary(Document document, User user) {
         if (!document.isExternalAiAllowed()) {
-            throw new IllegalArgumentException("O processamento por IA externa está desabilitado para este documento.");
+            throw new BusinessRuleException("O processamento por IA externa está desabilitado para este documento.");
         }
         int remaining = quotaService.consume(user);
         String generated = nemotronClient.summarize(document.getTitle(), document.getContent());

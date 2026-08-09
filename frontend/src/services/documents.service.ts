@@ -10,7 +10,8 @@ export type DocumentRequestDTO = {
   content: string;
   visibility?: Visibility;
   externalAiAllowed?: boolean;
-  trainingUseAllowed?: boolean;
+  trainingUseAllowed: boolean;
+  usageTermsAccepted: boolean;
 };
 
 export type DocumentResponseDTO = {
@@ -57,6 +58,14 @@ export type FindDocumentsParams = {
   status?: Status;
 };
 
+export type PublicDocumentsParams = {
+  category?: string;
+  tag?: string;
+  difficulty?: Level;
+  page?: number;
+  size?: number;
+};
+
 export async function sendDocument(request: DocumentRequestDTO): Promise<DocumentResponseDTO> {
   return apiRequest<DocumentResponseDTO>({ method: "POST", url: "/document", data: request });
 }
@@ -69,6 +78,18 @@ export async function findPublicDocumentById(documentId: number): Promise<Public
   return apiRequest<PublicDocumentDTO>({ method: "GET", url: `/document/public/${documentId}` });
 }
 
+export async function listPublicDocuments(params: PublicDocumentsParams = {}): Promise<PublicDocumentDTO[]> {
+  return apiRequest<PublicDocumentDTO[]>({ method: "GET", url: "/document/public", params });
+}
+
 export async function findDocuments(params: FindDocumentsParams = {}): Promise<DocumentListDTO[]> {
   return apiRequest<DocumentListDTO[]>({ method: "GET", url: "/document", params });
+}
+
+export async function updateDocumentVisibility(documentId: number, visibility: Visibility): Promise<DocumentResponseDTO> {
+  return apiRequest<DocumentResponseDTO>({ method: "PATCH", url: `/document/${documentId}/visibility`, data: { visibility } });
+}
+
+export async function deleteDocument(documentId: number): Promise<void> {
+  return apiRequest<void>({ method: "DELETE", url: `/document/${documentId}` });
 }

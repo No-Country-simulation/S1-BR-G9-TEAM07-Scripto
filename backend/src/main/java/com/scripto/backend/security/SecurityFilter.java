@@ -31,19 +31,18 @@ public class SecurityFilter extends OncePerRequestFilter {
         var token = this.recoverToken(request);
         if (token != null) {
             try {
-                var login = jwtService.validateToken(token);
+                Long userId = jwtService.validateUserId(token);
+                User user = userId == null
+                        ? userRepository.findByEmail(jwtService.validateToken(token))
+                        : userRepository.findById(userId).orElse(null);
 
-                if (login != null) {
-                    User user = userRepository.findByEmail(login);
-
-                    if (user == null || !Boolean.TRUE.equals(user.getActive())) {
-                        filterChain.doFilter(request, response);
-                        return;
-                    }
-
-                    var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (user == null || !user.isEnabled()) {
+                    filterChain.doFilter(request, response);
+                    return;
                 }
+
+                var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JWTVerificationException exception) {
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);

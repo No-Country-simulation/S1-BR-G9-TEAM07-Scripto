@@ -28,7 +28,9 @@ const apiBaseUrl = configuredBaseUrl || "/api";
 
 export const api = axios.create({
   baseURL: apiBaseUrl,
-  timeout: 60_000,
+  // O backend pode fazer até 2 tentativas do Nemotron com read timeout de 45s cada.
+  // O cliente precisa esperar mais que a janela máxima para não reportar falha enquanto a API ainda conclui.
+  timeout: 120_000,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -36,6 +38,7 @@ const PUBLIC_ROUTES = new Set([
   "/user/login",
   "/user/register",
   "/user/reactivate",
+  "/user/suspended/password",
 ]);
 
 function normalizeRequestPath(url?: string): string {
@@ -92,6 +95,8 @@ function normalizeError(error: AxiosError<unknown>): ApiError {
     403: "Acesso negado para este recurso.",
     404: "Recurso não encontrado.",
     409: "A operação conflita com o estado atual do recurso.",
+    410: "O prazo para reativação desta conta expirou.",
+    423: "Esta conta está bloqueada administrativamente.",
     422: "Um ou mais campos estão inválidos.",
     429: "Limite de requisições atingido. Tente novamente mais tarde.",
     500: "Erro interno da API.",

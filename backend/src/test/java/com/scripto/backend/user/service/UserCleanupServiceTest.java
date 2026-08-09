@@ -1,7 +1,6 @@
 package com.scripto.backend.user.service;
 
 import com.scripto.backend.aianalyse.repository.AIAnalysisRepository;
-import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.document.repository.DocumentRepository;
 import com.scripto.backend.tag.repository.DocumentTagRepository;
 import com.scripto.backend.user.entity.User;

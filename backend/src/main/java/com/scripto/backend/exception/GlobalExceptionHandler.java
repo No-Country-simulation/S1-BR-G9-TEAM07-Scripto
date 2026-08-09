@@ -1,5 +1,6 @@
 package com.scripto.backend.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.scripto.backend.classification.exception.ClassificationUnavailableException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -19,9 +21,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -29,8 +32,8 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // 400 - BAD REQUEST: Erro de sintaxe, parâmetros inválidos ou conversão de tipo (ex: passar texto em campo numérico)
-    @ExceptionHandler({IllegalArgumentException.class, MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<ErrorResponse> handleBadRequest(Exception ex, HttpServletRequest request) {
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ErrorResponse> handleBadRequest(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         logger.warn("Bad request on {}: {}", request.getRequestURI(), ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
@@ -44,6 +47,26 @@ public class GlobalExceptionHandler {
     // 400 - BAD REQUEST: Erro ao ler o corpo da requisição (JSON inválido)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        // Enum inválido → 422 com field error
+        if (ex.getCause() instanceof InvalidFormatException ife && ife.getTargetType() != null && ife.getTargetType().isEnum()) {
+            String field = ife.getPath().stream()
+                    .map(ref -> ref.getFieldName())
+                    .filter(name -> name != null)
+                    .collect(Collectors.joining("."));
+            if (field.isEmpty()) field = "unknown";
+            String accepted = Arrays.stream(ife.getTargetType().getEnumConstants())
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+            logger.warn("Enum deserialization error on {}: field={}, value={}, accepted=[{}]",
+                    request.getRequestURI(), field, ife.getValue(), accepted);
+            Map<String, String> fields = Map.of(field,
+                    "Valor inválido '" + ife.getValue() + "'. Valores aceitos: " + accepted);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
+                    new ErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                            "Erro de Validação",
+                            "Um ou mais campos estão inválidos. Verifique os detalhes.",
+                            request.getRequestURI(), fields));
+        }
         logger.warn("Malformed JSON request on {}: {}", request.getRequestURI(), ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
@@ -52,6 +75,31 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+        logger.info("Invalid credentials on {}", request.getRequestURI());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Credenciais Inválidas",
+                "As credenciais informadas são inválidas.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    // 422 - UNPROCESSABLE ENTITY: Erro de lógica de validação (ex: senha atual incorreta, confirmação divergente)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        logger.warn("Validation error on {}: {}", request.getRequestURI(), ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Erro de Validação",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
     }
 
     // 401 - UNAUTHORIZED: Falha de autenticação
@@ -65,6 +113,42 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(AccountPendingReactivationException.class)
+    public ResponseEntity<ErrorResponse> handlePendingReactivation(AccountPendingReactivationException ex, HttpServletRequest request) {
+        logger.info("Login blocked for account pending reactivation on {}", request.getRequestURI());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                "Conta Aguardando Reativação",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(AccountBannedException.class)
+    public ResponseEntity<ErrorResponse> handleBannedAccount(AccountBannedException ex, HttpServletRequest request) {
+        logger.info("Access blocked for banned account on {}", request.getRequestURI());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.LOCKED.value(),
+                "Conta Bloqueada",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.LOCKED).body(error);
+    }
+
+    @ExceptionHandler(AccountDeletionExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleDeletionExpired(AccountDeletionExpiredException ex, HttpServletRequest request) {
+        logger.info("Reactivation deadline expired on {}", request.getRequestURI());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.GONE.value(),
+                "Prazo de Reativação Expirado",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.GONE).body(error);
     }
 
     // 403 - FORBIDDEN: Usuário logado, mas sem permissão (Role/Authority/Perfil inválido)
@@ -113,7 +197,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.METHOD_NOT_ALLOWED.value(),
                 "Método Não Permitido",
-                String.format("O método %s não é suportado para esta rota. Métodos permitidos: %s", 
+                String.format("O método %s não é suportado para esta rota. Métodos permitidos: %s",
                     ex.getMethod(), ex.getSupportedMethods()),
                 request.getRequestURI()
         );
@@ -151,19 +235,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
         logger.warn("Data integrity violation on {}: {}", request.getRequestURI(), ex.getMessage());
         String message = "Violação de integridade de dados.";
-        
+
         // Tenta extrair informação mais específica da mensagem de erro
         String rootMessage = ex.getMostSpecificCause().getMessage();
         if (rootMessage != null) {
-            if (rootMessage.contains("duplicate key")) {
+            String normalizedRootMessage = rootMessage.toLowerCase();
+            if (normalizedRootMessage.contains("duplicate key") || normalizedRootMessage.contains("duplicate entry")) {
                 message = "Já existe um registro com este valor. Verifique duplicidade.";
-            } else if (rootMessage.contains("foreign key")) {
-                message = "Violação de chave estrangeira. Verifique os relacionamentos.";
-            } else if (rootMessage.contains("not null")) {
+            } else if (normalizedRootMessage.contains("foreign key")) {
+                message = "A operação viola um relacionamento obrigatório entre os dados.";
+            } else if (normalizedRootMessage.contains("not null") || normalizedRootMessage.contains("cannot be null")) {
                 message = "Campo obrigatório não informado.";
             }
         }
-        
+
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 "Conflito de Dados",
@@ -191,6 +276,32 @@ public class GlobalExceptionHandler {
                 errors
         );
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+    }
+
+    @ExceptionHandler(DailyQuotaExceededException.class)
+    public ResponseEntity<ErrorResponse> handleDailyQuotaExceeded(
+            DailyQuotaExceededException ex, HttpServletRequest request) {
+        logger.info("Daily quota exceeded on {}", request.getRequestURI());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.TOO_MANY_REQUESTS.value(),
+                "Limite Diário Atingido",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+    }
+
+    @ExceptionHandler(AiRetentionUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleAiRetentionUnavailable(
+            AiRetentionUnavailableException ex, HttpServletRequest request) {
+        logger.error("AI corpus retention unavailable on {}: {}", request.getRequestURI(), ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "Armazenamento de IA Indisponível",
+                "Não foi possível concluir o envio do documento neste momento. Tente novamente mais tarde.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
 
     @ExceptionHandler(ClassificationUnavailableException.class)

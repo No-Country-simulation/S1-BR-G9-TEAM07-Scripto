@@ -1,6 +1,6 @@
 package com.scripto.backend.summary.service;
 
-import com.scripto.backend.exception.BusinessRuleException;
+import com.scripto.backend.exception.DailyQuotaExceededException;
 import com.scripto.backend.summary.repository.DailyAiUsageRepository;
 import com.scripto.backend.user.entity.User;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class DailySummaryQuotaService {
         LocalDate today = LocalDate.now(BUSINESS_ZONE);
         repository.insertIgnore(user.getId(), today);
         if (repository.incrementWhenAvailable(user.getId(), today) == 0) {
-            throw new BusinessRuleException("Limite diário de 3 resumos atingido.");
+            throw new DailyQuotaExceededException("Limite diário de 3 resumos atingido.");
         }
         int used = repository.findByUserIdAndUsageDate(user.getId(), today)
                 .map(usage -> usage.getSummaryCount())

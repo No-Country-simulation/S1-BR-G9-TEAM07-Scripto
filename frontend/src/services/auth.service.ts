@@ -16,11 +16,21 @@ export type UserRegisterDTO = {
   fullName: string;
   email: string;
   password: string;
+  termsAccepted: boolean;
 };
 
 export type UserReactivateAccountDTO = {
+  cpf: string;
   email: string;
   password: string;
+};
+
+export type SuspendedPasswordChangeDTO = {
+  cpf: string;
+  email: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
 };
 
 async function authenticate(request: LoginDTO): Promise<TokenJWTDTO> {
@@ -85,6 +95,14 @@ export async function deleteOwnAccount(): Promise<void> {
 
 export async function reactivateAccount(request: UserReactivateAccountDTO): Promise<void> {
   await apiRequest<void>({ method: "POST", url: "/user/reactivate", data: request });
+}
+
+export async function changeSuspendedPassword(request: SuspendedPasswordChangeDTO): Promise<void> {
+  await apiRequest<void>({ method: "PATCH", url: "/user/suspended/password", data: {
+    ...request,
+    cpf: request.cpf.replace(/\D/g, ""),
+    email: request.email.trim().toLowerCase(),
+  } });
 }
 
 export { currentSession };

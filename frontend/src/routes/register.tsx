@@ -51,7 +51,7 @@ function RegisterPage() {
     setServerFields({});
     setLoading(true);
     try {
-      await registerUser({ fullName: form.fullName, cpf: form.cpf, email: form.email, password: form.password });
+      await registerUser({ fullName: form.fullName, cpf: form.cpf, email: form.email, password: form.password, termsAccepted: terms });
       await router.navigate({ to: "/app" });
     } catch (currentError) {
       setServerFields({
