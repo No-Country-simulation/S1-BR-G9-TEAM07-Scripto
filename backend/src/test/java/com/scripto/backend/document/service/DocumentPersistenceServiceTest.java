@@ -19,7 +19,7 @@ import org.mockito.MockitoAnnotations;
 import com.scripto.backend.document.domain.Visibility;
 import com.scripto.backend.aianalyse.domain.Level;
 import com.scripto.backend.classification.domain.ClassificationSource;
-import com.scripto.backend.classification.domain.FallbackReason;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -303,4 +303,21 @@ class DocumentPersistenceServiceTest {
         verify(documentRepository).findById(1L);
         verify(documentRepository).save(document);
     }
+
+    @Test
+    void naoDeveSalvarQuandoDocumentoNaoExistirAoMarcarComoError() {
+
+        // Arrange
+        when(documentRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        // Act
+        persistenceService.markError(1L);
+
+        // Assert
+        verify(documentRepository).findById(1L);
+        verify(documentRepository, never()).save(any(Document.class));
+    }
+
+
 }
