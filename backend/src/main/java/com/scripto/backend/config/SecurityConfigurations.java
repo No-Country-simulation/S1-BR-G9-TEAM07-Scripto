@@ -21,7 +21,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -65,6 +64,22 @@ public class SecurityConfigurations {
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return (HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) -> {
+            // Rotas fora dos prefixos de API → 404 (evita vazamento de info de autenticação)
+            String path = request.getRequestURI();
+            boolean isApiPath = path.startsWith("/user") || path.startsWith("/document")
+                    || path.startsWith("/admin") || path.startsWith("/explore")
+                    || path.startsWith("/actuator") || path.startsWith("/v3/api-docs")
+                    || path.startsWith("/swagger-ui") || path.equals("/docs")
+                    || path.startsWith("/docs/") || path.startsWith("/error");
+            if (!isApiPath) {
+                response.setStatus(HttpStatus.NOT_FOUND.value());
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(
+                        "{\"status\":404,\"error\":\"Recurso Não Encontrado\",\"message\":\"A rota solicitada não existe.\",\"path\":\"" +
+                        request.getRequestURI() + "\"}");
+                return;
+            }
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");

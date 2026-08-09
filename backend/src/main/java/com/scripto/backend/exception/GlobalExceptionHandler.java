@@ -1,5 +1,6 @@
 package com.scripto.backend.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.scripto.backend.classification.exception.ClassificationUnavailableException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,9 +21,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -30,8 +32,8 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // 400 - BAD REQUEST: Erro de sintaxe, parâmetros inválidos ou conversão de tipo (ex: passar texto em campo numérico)
-    @ExceptionHandler({IllegalArgumentException.class, MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<ErrorResponse> handleBadRequest(Exception ex, HttpServletRequest request) {
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ErrorResponse> handleBadRequest(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         logger.warn("Bad request on {}: {}", request.getRequestURI(), ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
@@ -45,6 +47,26 @@ public class GlobalExceptionHandler {
     // 400 - BAD REQUEST: Erro ao ler o corpo da requisição (JSON inválido)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        // Enum inválido → 422 com field error
+        if (ex.getCause() instanceof InvalidFormatException ife && ife.getTargetType() != null && ife.getTargetType().isEnum()) {
+            String field = ife.getPath().stream()
+                    .map(ref -> ref.getFieldName())
+                    .filter(name -> name != null)
+                    .collect(Collectors.joining("."));
+            if (field.isEmpty()) field = "unknown";
+            String accepted = Arrays.stream(ife.getTargetType().getEnumConstants())
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+            logger.warn("Enum deserialization error on {}: field={}, value={}, accepted=[{}]",
+                    request.getRequestURI(), field, ife.getValue(), accepted);
+            Map<String, String> fields = Map.of(field,
+                    "Valor inválido '" + ife.getValue() + "'. Valores aceitos: " + accepted);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
+                    new ErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                            "Erro de Validação",
+                            "Um ou mais campos estão inválidos. Verifique os detalhes.",
+                            request.getRequestURI(), fields));
+        }
         logger.warn("Malformed JSON request on {}: {}", request.getRequestURI(), ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
@@ -65,6 +87,19 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    // 422 - UNPROCESSABLE ENTITY: Erro de lógica de validação (ex: senha atual incorreta, confirmação divergente)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        logger.warn("Validation error on {}: {}", request.getRequestURI(), ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Erro de Validação",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
     }
 
     // 401 - UNAUTHORIZED: Falha de autenticação
