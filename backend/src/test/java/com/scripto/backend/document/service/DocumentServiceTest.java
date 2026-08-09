@@ -7,20 +7,26 @@ import com.scripto.backend.aianalyse.domain.Level;
 import com.scripto.backend.document.domain.ModerationStatus;
 import com.scripto.backend.document.domain.Status;
 import com.scripto.backend.document.domain.Visibility;
-import com.scripto.backend.document.dto.DocumentRequestDTO;
-import com.scripto.backend.document.dto.DocumentResponseDTO;
+import com.scripto.backend.document.dto.*;
 import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.document.repository.DocumentRepository;
+import com.scripto.backend.exception.BusinessRuleException;
+import com.scripto.backend.exception.ResourceNotFoundException;
 import com.scripto.backend.tag.service.TagService;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.vector.VectorStore;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import com.scripto.backend.classification.domain.ClassificationInput;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 
 import java.util.List;
@@ -29,7 +35,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import com.scripto.backend.classification.domain.ClassificationInput;
+
 
 
 
@@ -266,7 +272,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveMarcarDocumentoComoErrorQuandoClassificacaoFalhar() {
+    void deveRegistrarClassificacaoNoVectorStore() {
 
         // Arrange
         User user = new User(
@@ -277,10 +283,57 @@ class DocumentServiceTest {
         );
         user.setId(1L);
 
+        Document document = new Document(
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento."
+        );
+
+        document.setId(1L);
+        document.setUser(user);
+        document.setVisibility(Visibility.PRIVATE);
+        document.setTrainingUseAllowed(false);
+
         DocumentRequestDTO request = new DocumentRequestDTO(
                 "Meu Documento",
                 "Conteúdo suficiente para o teste do documento."
         );
+
+        FinalClassification classification = criarClassificacao();
+
+        when(persistenceService.createPending(request, user))
+                .thenReturn(document);
+
+        when(classificationOrchestrator.classify(any(ClassificationInput.class)))
+                .thenReturn(classification);
+
+        when(documentRepository.findDetailedById(1L))
+                .thenReturn(Optional.of(document));
+
+        // Act
+        documentService.sendDocument(request, user);
+
+        // Assert
+        verify(vectorStore).recordClassification(
+                1L,
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento.",
+                Visibility.PRIVATE,
+                false,
+                classification
+        );
+    }
+
+    @Test
+    void deveMarcarDocumentoComoProcessingAntesDaClassificacao() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
 
         Document document = new Document(
                 "Meu Documento",
@@ -290,38 +343,629 @@ class DocumentServiceTest {
         document.setId(1L);
         document.setUser(user);
 
-        RuntimeException exception = new RuntimeException("Erro na classificação");
+        DocumentRequestDTO request = new DocumentRequestDTO(
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento."
+        );
+
+        FinalClassification classification = criarClassificacao();
 
         when(persistenceService.createPending(request, user))
                 .thenReturn(document);
 
-        // Ajustado aqui:
-        when(persistenceService.markProcessing(document.getId()))
-                .thenReturn(document);
-
         when(classificationOrchestrator.classify(any(ClassificationInput.class)))
-                .thenThrow(exception);
+                .thenReturn(classification);
 
-        // Act + Assert
-        RuntimeException resultado = assertThrows(
-                RuntimeException.class,
-                () -> documentService.sendDocument(request, user)
+        when(documentRepository.findDetailedById(1L))
+                .thenReturn(Optional.of(document));
+
+        // Act
+        documentService.sendDocument(request, user);
+
+        // Assert
+        verify(persistenceService).createPending(request, user);
+        verify(persistenceService).markProcessing(1L);
+        verify(classificationOrchestrator)
+                .classify(any(ClassificationInput.class));
+
+        InOrder inOrder = inOrder(
+                persistenceService,
+                classificationOrchestrator
         );
 
-        assertSame(exception, resultado);
+        inOrder.verify(persistenceService)
+                .createPending(request, user);
 
-        // Verifica que o documento foi marcado como erro
-        verify(persistenceService).markError(document.getId());
+        inOrder.verify(persistenceService)
+                .markProcessing(1L);
 
-        // Verifica que a classificação realmente foi chamada
-        verify(classificationOrchestrator).classify(any(ClassificationInput.class));
-
-        // Não deve tentar concluir nem gravar vetor
-        verify(persistenceService, never())
-                .complete(anyLong(), any(FinalClassification.class));
-
-        verifyNoInteractions(vectorStore);
+        inOrder.verify(classificationOrchestrator)
+                .classify(any(ClassificationInput.class));
     }
+
+    @Test
+    void deveImpedirAcessoAoDocumentoDeOutroUsuario() {
+
+        // Arrange
+        User donoDoDocumento = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        donoDoDocumento.setId(1L);
+
+        User outroUsuario = new User(
+                "Maria da Silva",
+                "maria@email.com",
+                "12345678902",
+                "senha"
+        );
+        outroUsuario.setId(2L);
+
+        Document document = new Document(
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento."
+        );
+
+        document.setId(1L);
+        document.setUser(donoDoDocumento);
+
+        when(documentRepository.findDetailedById(1L))
+                .thenReturn(Optional.of(document));
+
+        // Act + Assert
+        assertThrows(
+                com.scripto.backend.exception.ResourceNotFoundException.class,
+                () -> documentService.findById(1L, outroUsuario)
+        );
+
+        verify(documentRepository).findDetailedById(1L);
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoDocumentoNaoForEncontrado() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        when(documentRepository.findDetailedById(1L))
+                .thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThrows(
+                com.scripto.backend.exception.ResourceNotFoundException.class,
+                () -> documentService.findById(1L, user)
+        );
+
+        verify(documentRepository).findDetailedById(1L);
+    }
+
+    @Test
+    void deveEncontrarDocumentoPublicoPorId() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        Document document = new Document(
+                "Documento Público",
+                "Conteúdo suficiente para o teste do documento público."
+        );
+
+        document.setId(1L);
+        document.setUser(user);
+        document.setVisibility(Visibility.PUBLIC);
+        document.setModerationStatus(ModerationStatus.APPROVED);
+        document.setStatus(Status.PROCESSED);
+
+        when(documentRepository
+                .findByIdAndVisibilityAndModerationStatusAndStatus(
+                        1L,
+                        Visibility.PUBLIC,
+                        ModerationStatus.APPROVED,
+                        Status.PROCESSED
+                ))
+                .thenReturn(Optional.of(document));
+
+        // Act
+        PublicDocumentDTO response =
+                documentService.findPublicById(1L);
+
+        // Assert
+        assertNotNull(response);
+
+        verify(documentRepository)
+                .findByIdAndVisibilityAndModerationStatusAndStatus(
+                        1L,
+                        Visibility.PUBLIC,
+                        ModerationStatus.APPROVED,
+                        Status.PROCESSED
+                );
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoDocumentoPublicoNaoForEncontrado() {
+
+        // Arrange
+        when(documentRepository
+                .findByIdAndVisibilityAndModerationStatusAndStatus(
+                        1L,
+                        Visibility.PUBLIC,
+                        ModerationStatus.APPROVED,
+                        Status.PROCESSED
+                ))
+                .thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> documentService.findPublicById(1L)
+        );
+
+        verify(documentRepository)
+                .findByIdAndVisibilityAndModerationStatusAndStatus(
+                        1L,
+                        Visibility.PUBLIC,
+                        ModerationStatus.APPROVED,
+                        Status.PROCESSED
+                );
+    }
+
+    @Test
+    void deveNormalizarTagAoBuscarDocumentos() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        when(tagService.normalizeKey(" Java "))
+                .thenReturn("java");
+
+        when(documentRepository.findByFilters(
+                user,
+                "Backend",
+                "java",
+                Level.INTERMEDIATE,
+                Status.PROCESSED
+        ))
+                .thenReturn(List.of());
+
+        // Act
+        List<DocumentListDTO> response =
+                documentService.findDocuments(
+                        user,
+                        "Backend",
+                        " Java ",
+                        Level.INTERMEDIATE,
+                        Status.PROCESSED
+                );
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+
+        verify(tagService)
+                .normalizeKey(" Java ");
+
+        verify(documentRepository)
+                .findByFilters(
+                        user,
+                        "Backend",
+                        "java",
+                        Level.INTERMEDIATE,
+                        Status.PROCESSED
+                );
+    }
+
+    @Test
+    void deveAtualizarVisibilidadeDoDocumento() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        Document document = new Document(
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento."
+        );
+
+        document.setId(1L);
+        document.setUser(user);
+        document.setVisibility(Visibility.PRIVATE);
+        document.setModerationStatus(ModerationStatus.APPROVED);
+        document.setStatus(Status.PROCESSED);
+
+        VisibilityUpdateDTO dto =
+                new VisibilityUpdateDTO(Visibility.PUBLIC);
+
+        when(documentRepository.findDetailedById(1L))
+                .thenReturn(Optional.of(document));
+
+        when(documentRepository.save(any(Document.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        DocumentResponseDTO response =
+                documentService.updateVisibility(
+                        1L,
+                        dto,
+                        user
+                );
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Visibility.PUBLIC, response.visibility());
+        assertEquals(Visibility.PUBLIC, document.getVisibility());
+
+        verify(documentRepository)
+                .findDetailedById(1L);
+
+        verify(documentRepository)
+                .save(document);
+    }
+
+    @Test
+    void deveImpedirAlteracaoDeVisibilidadePorOutroUsuario() {
+
+        // Arrange
+        User dono = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        dono.setId(1L);
+
+        User outroUsuario = new User(
+                "Maria da Silva",
+                "maria@email.com",
+                "12345678902",
+                "senha"
+        );
+        outroUsuario.setId(2L);
+
+        Document document = new Document(
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento."
+        );
+
+        document.setId(1L);
+        document.setUser(dono);
+        document.setVisibility(Visibility.PRIVATE);
+
+        VisibilityUpdateDTO dto =
+                new VisibilityUpdateDTO(Visibility.PUBLIC);
+
+        when(documentRepository.findDetailedById(1L))
+                .thenReturn(Optional.of(document));
+
+        // Act + Assert
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> documentService.updateVisibility(
+                        1L,
+                        dto,
+                        outroUsuario
+                )
+        );
+
+        verify(documentRepository)
+                .findDetailedById(1L);
+
+        verify(documentRepository, never())
+                .save(any(Document.class));
+    }
+
+    @Test
+    void naoDevePermitirDocumentoBloqueadoComoPublico() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        Document document = new Document(
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento."
+        );
+
+        document.setId(1L);
+        document.setUser(user);
+        document.setVisibility(Visibility.PRIVATE);
+        document.setModerationStatus(ModerationStatus.BLOCKED);
+
+        VisibilityUpdateDTO dto =
+                new VisibilityUpdateDTO(Visibility.PUBLIC);
+
+        when(documentRepository.findDetailedById(1L))
+                .thenReturn(Optional.of(document));
+
+        // Act + Assert
+        assertThrows(
+                BusinessRuleException.class,
+                () -> documentService.updateVisibility(
+                        1L,
+                        dto,
+                        user
+                )
+        );
+
+        verify(documentRepository)
+                .findDetailedById(1L);
+
+        verify(documentRepository, never())
+                .save(any(Document.class));
+    }
+
+    @Test
+    void devePermitirDocumentoBloqueadoComoPrivado() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        Document document = new Document(
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento."
+        );
+
+        document.setId(1L);
+        document.setUser(user);
+        document.setVisibility(Visibility.PUBLIC);
+        document.setModerationStatus(ModerationStatus.BLOCKED);
+
+        VisibilityUpdateDTO dto =
+                new VisibilityUpdateDTO(Visibility.PRIVATE);
+
+        when(documentRepository.findDetailedById(1L))
+                .thenReturn(Optional.of(document));
+
+        when(documentRepository.save(any(Document.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        DocumentResponseDTO response =
+                documentService.updateVisibility(
+                        1L,
+                        dto,
+                        user
+                );
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Visibility.PRIVATE, response.visibility());
+        assertEquals(Visibility.PRIVATE, document.getVisibility());
+
+        verify(documentRepository)
+                .save(document);
+    }
+
+    @Test
+    void deveListarDocumentosPublicosComFiltros() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        when(tagService.normalizeKey(" Java "))
+                .thenReturn("java");
+
+        when(documentRepository.findPublicDocuments(
+                "Backend",
+                "java",
+                Level.INTERMEDIATE,
+                user,
+                PageRequest.of(0, 10)
+        ))
+                .thenReturn(List.of());
+
+        // Act
+        List<PublicDocumentDTO> response =
+                documentService.listPublicDocuments(
+                        user,
+                        "Backend",
+                        " Java ",
+                        Level.INTERMEDIATE,
+                        0,
+                        10
+                );
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+
+        verify(tagService)
+                .normalizeKey(" Java ");
+
+        verify(documentRepository)
+                .findPublicDocuments(
+                        "Backend",
+                        "java",
+                        Level.INTERMEDIATE,
+                        user,
+                        PageRequest.of(0, 10)
+                );
+    }
+
+    @Test
+    void deveListarDocumentosPublicosSemTag() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        when(documentRepository.findPublicDocuments(
+                null,
+                null,
+                null,
+                user,
+                PageRequest.of(1, 20)
+        ))
+                .thenReturn(List.of());
+
+        // Act
+        List<PublicDocumentDTO> response =
+                documentService.listPublicDocuments(
+                        user,
+                        null,
+                        null,
+                        null,
+                        1,
+                        20
+                );
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+
+        verify(tagService, never())
+                .normalizeKey(anyString());
+
+        verify(documentRepository)
+                .findPublicDocuments(
+                        null,
+                        null,
+                        null,
+                        user,
+                        PageRequest.of(1, 20)
+                );
+    }
+
+    @Test
+    void deveExcluirDocumentoDoUsuario() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        Document document = new Document(
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento."
+        );
+
+        document.setId(1L);
+        document.setUser(user);
+
+        when(documentRepository.findByIdAndUser(1L, user))
+                .thenReturn(Optional.of(document));
+
+        // Act
+        documentService.deleteDocument(1L, user);
+
+        // Assert
+        verify(documentRepository)
+                .findByIdAndUser(1L, user);
+
+        verify(documentRepository)
+                .delete(document);
+    }
+
+    @Test
+    void naoDeveExcluirDocumentoNaoEncontrado() {
+
+        // Arrange
+        User user = new User(
+                "João da Silva",
+                "joao@email.com",
+                "12345678901",
+                "senha"
+        );
+        user.setId(1L);
+
+        when(documentRepository.findByIdAndUser(1L, user))
+                .thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> documentService.deleteDocument(1L, user)
+        );
+
+        verify(documentRepository)
+                .findByIdAndUser(1L, user);
+
+        verify(documentRepository, never())
+                .delete(any(Document.class));
+    }
+
+    @Test
+    void deveBuscarTodosOsDocumentosComPaginacao() {
+
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Document document = new Document(
+                "Meu Documento",
+                "Conteúdo suficiente para o teste do documento."
+        );
+
+        document.setId(1L);
+
+        Page<Document> page =
+                new PageImpl<>(List.of(document), pageable, 1);
+
+        when(documentRepository.findAll(pageable))
+                .thenReturn(page);
+
+        // Act
+        Page<DocumentListDTO> response =
+                documentService.findAllDocuments(pageable);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(1, response.getTotalElements());
+        assertEquals(1, response.getContent().size());
+
+        verify(documentRepository)
+                .findAll(pageable);
+    }
+
 
 
 
