@@ -21,6 +21,7 @@ import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.document.repository.DocumentRepository;
 import com.scripto.backend.exception.BusinessRuleException;
 import com.scripto.backend.exception.ResourceNotFoundException;
+import com.scripto.backend.summary.service.SummaryLookupService;
 import com.scripto.backend.tag.service.TagService;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.vector.VectorStore;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DocumentService {
@@ -40,6 +42,7 @@ public class DocumentService {
     private final ClassificationOrchestrator classificationOrchestrator;
     private final VectorStore vectorStore;
     private final TagService tagService;
+    private final SummaryLookupService summaryLookupService;
     private final ObjectMapper objectMapper;
 
     public DocumentService(
@@ -48,6 +51,7 @@ public class DocumentService {
             ClassificationOrchestrator classificationOrchestrator,
             VectorStore vectorStore,
             TagService tagService,
+            SummaryLookupService summaryLookupService,
             ObjectMapper objectMapper
     ) {
         this.documentRepository = documentRepository;
@@ -55,6 +59,7 @@ public class DocumentService {
         this.classificationOrchestrator = classificationOrchestrator;
         this.vectorStore = vectorStore;
         this.tagService = tagService;
+        this.summaryLookupService = summaryLookupService;
         this.objectMapper = objectMapper;
     }
 
@@ -100,7 +105,7 @@ public class DocumentService {
                         documentId, Visibility.PUBLIC, ModerationStatus.APPROVED, Status.PROCESSED
                 )
                 .orElseThrow(() -> new ResourceNotFoundException("Documento público não encontrado."));
-        return new PublicDocumentDTO(document);
+        return new PublicDocumentDTO(document, summaryLookupService.findText(document.getId()));
     }
 
     public List<DocumentListDTO> findDocuments(User user, String category, String tag, Level level, Status status) {
@@ -108,9 +113,10 @@ public class DocumentService {
             return List.of();
         }
         String normalizedTag = tag == null ? null : tagService.normalizeKey(tag);
-        return documentRepository.findByFilters(user, category, normalizedTag, level, status)
-                .stream()
-                .map(DocumentListDTO::new)
+        List<Document> documents = documentRepository.findByFilters(user, category, normalizedTag, level, status);
+        Map<Long, String> summaries = summaryLookupService.findTexts(documents.stream().map(Document::getId).toList());
+        return documents.stream()
+                .map(document -> new DocumentListDTO(document, summaries.get(document.getId())))
                 .toList();
     }
 
@@ -149,9 +155,12 @@ public class DocumentService {
         for (int index = 0; index < ids.size(); index++) {
             order.put(ids.get(index), index);
         }
-        return documentRepository.findPublicDetailedByIdsExcludingUser(ids, currentUser).stream()
+        List<Document> documents = documentRepository.findPublicDetailedByIdsExcludingUser(ids, currentUser).stream()
                 .sorted(java.util.Comparator.comparingInt(document -> order.getOrDefault(document.getId(), Integer.MAX_VALUE)))
-                .map(PublicDocumentDTO::new)
+                .toList();
+        Map<Long, String> summaries = summaryLookupService.findTexts(documents.stream().map(Document::getId).toList());
+        return documents.stream()
+                .map(document -> new PublicDocumentDTO(document, summaries.get(document.getId())))
                 .toList();
     }
 
@@ -193,6 +202,7 @@ public class DocumentService {
                 document.isExternalAiAllowed(),
                 document.isTrainingUseAllowed(),
                 analysisDto,
+                summaryLookupService.findText(document.getId()),
                 document.getCreatedAt(),
                 document.getUpdatedAt()
         );
@@ -218,7 +228,8 @@ public class DocumentService {
 
     @Transactional(readOnly = true)
     public Page<DocumentListDTO> findAllDocuments(Pageable pageable) {
-        var documents = documentRepository.findAll(pageable);
-        return documents.map(DocumentListDTO::new);
+        Page<Document> documents = documentRepository.findAll(pageable);
+        Map<Long, String> summaries = summaryLookupService.findTexts(documents.getContent().stream().map(Document::getId).toList());
+        return documents.map(document -> new DocumentListDTO(document, summaries.get(document.getId())));
     }
 }

@@ -7,9 +7,9 @@ export const Route = createFileRoute("/app")({ component: AppLayout });
 function AppLayout() {
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-background md:h-screen md:overflow-hidden">
+      <div className="flex min-h-screen flex-col bg-background lg:flex-row">
         <UserSidebar />
-        <main id="main-content" className="min-w-0 flex-1 md:h-screen md:overflow-y-auto md:overflow-x-hidden">
+        <main id="main-content" className="min-w-0 flex-1 overflow-x-hidden">
           <Outlet />
         </main>
       </div>

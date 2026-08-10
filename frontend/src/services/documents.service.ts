@@ -24,6 +24,7 @@ export type DocumentResponseDTO = {
   externalAiAllowed: boolean;
   trainingUseAllowed: boolean;
   analysis: AIAnalysisResultDTO | null;
+  summary: string | null;
   createdAt: string;
   updatedAt: string | null;
 };
@@ -36,6 +37,7 @@ export type DocumentListDTO = {
   category: string | null;
   difficulty: Level | null;
   tags: string[];
+  summary: string | null;
   createdAt: string;
 };
 
@@ -48,6 +50,7 @@ export type PublicDocumentDTO = {
   category: string | null;
   difficulty: Level | null;
   tags: string[];
+  summary: string | null;
   createdAt: string;
 };
 

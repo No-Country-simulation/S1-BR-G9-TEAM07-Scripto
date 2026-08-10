@@ -16,9 +16,9 @@ export function TopBar() {
   ] as const;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-xl">
-      <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
-        <Link to="/" className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Scripto">
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-[#E8DED2]/95 backdrop-blur-xl dark:bg-background/90">
+      <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-3 px-4 md:px-8">
+        <Link to="/" className="flex w-32 items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Scripto">
           <AppLogo />
         </Link>
 

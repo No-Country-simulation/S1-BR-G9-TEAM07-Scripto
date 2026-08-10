@@ -15,9 +15,14 @@ public record PublicDocumentDTO(
         String category,
         Level difficulty,
         List<String> tags,
+        String summary,
         LocalDateTime createdAt
 ) {
     public PublicDocumentDTO(Document document) {
+        this(document, document.getSummary() == null ? null : document.getSummary().getSummary());
+    }
+
+    public PublicDocumentDTO(Document document, String summary) {
         this(
                 document.getId(),
                 document.getTitle(),
@@ -27,6 +32,7 @@ public record PublicDocumentDTO(
                 document.getAiAnalyse() == null ? null : document.getAiAnalyse().getCategory(),
                 document.getAiAnalyse() == null ? null : document.getAiAnalyse().getDifficulty(),
                 document.getDocumentTags().stream().map(item -> item.getTag().getName()).toList(),
+                summary,
                 document.getCreatedAt()
         );
     }

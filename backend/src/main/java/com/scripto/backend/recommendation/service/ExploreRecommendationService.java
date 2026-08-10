@@ -6,6 +6,7 @@ import com.scripto.backend.document.domain.Visibility;
 import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.document.repository.DocumentRepository;
 import com.scripto.backend.recommendation.dto.RecommendationDTO;
+import com.scripto.backend.summary.service.SummaryLookupService;
 import com.scripto.backend.user.entity.User;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -18,9 +19,11 @@ import java.util.Map;
 @Service
 public class ExploreRecommendationService {
     private final DocumentRepository documentRepository;
+    private final SummaryLookupService summaryLookupService;
 
-    public ExploreRecommendationService(DocumentRepository documentRepository) {
+    public ExploreRecommendationService(DocumentRepository documentRepository, SummaryLookupService summaryLookupService) {
         this.documentRepository = documentRepository;
+        this.summaryLookupService = summaryLookupService;
     }
 
     @Transactional(readOnly = true)
@@ -45,9 +48,10 @@ public class ExploreRecommendationService {
         );
         int maximumCategoryFrequency = categoryFrequency.values().stream().mapToInt(Integer::intValue).max().orElse(1);
         int maximumTagFrequency = tagFrequency.values().stream().mapToInt(Integer::intValue).max().orElse(1);
+        Map<Long, String> summaries = summaryLookupService.findTexts(candidates.stream().map(Document::getId).toList());
 
         return candidates.stream()
-                .map(document -> toRecommendation(document, categoryFrequency, tagFrequency, maximumCategoryFrequency, maximumTagFrequency))
+                .map(document -> toRecommendation(document, summaries.get(document.getId()), categoryFrequency, tagFrequency, maximumCategoryFrequency, maximumTagFrequency))
                 .sorted((left, right) -> Double.compare(right.score(), left.score()))
                 .limit(resolvedLimit)
                 .toList();
@@ -55,6 +59,7 @@ public class ExploreRecommendationService {
 
     private RecommendationDTO toRecommendation(
             Document document,
+            String summary,
             Map<String, Integer> categoryFrequency,
             Map<String, Integer> tagFrequency,
             int maximumCategoryFrequency,
@@ -72,7 +77,18 @@ public class ExploreRecommendationService {
         double score = libraryIsEmpty(categoryFrequency, tagFrequency)
                 ? 0.0d
                 : 0.60d * categoryAffinity + 0.40d * tagAffinity;
-        return new RecommendationDTO(document.getId(), document.getTitle(), category, tags, score, 0.0d);
+        return new RecommendationDTO(
+                document.getId(),
+                document.getTitle(),
+                document.getUser().getFullName(),
+                category,
+                document.getAiAnalyse() == null ? null : document.getAiAnalyse().getDifficulty(),
+                tags,
+                summary,
+                document.getCreatedAt(),
+                score,
+                0.0d
+        );
     }
 
     private boolean libraryIsEmpty(Map<String, Integer> categoryFrequency, Map<String, Integer> tagFrequency) {

@@ -43,9 +43,6 @@ public class SummaryService {
     }
 
     private SummaryResponseDTO createSummary(Document document, User user) {
-        if (!document.isExternalAiAllowed()) {
-            throw new BusinessRuleException("O processamento por IA externa está desabilitado para este documento.");
-        }
         int remaining = quotaService.consume(user);
         String generated = nemotronClient.summarize(document.getTitle(), document.getContent());
         DocumentSummary summary = new DocumentSummary();
@@ -54,6 +51,7 @@ public class SummaryService {
         summary.setProvider("NEMOTRON");
         summary.setModel(nemotronClient.modelName());
         summary = summaryRepository.saveAndFlush(summary);
+        document.setSummary(summary);
         return toResponse(summary, false, remaining);
     }
 
