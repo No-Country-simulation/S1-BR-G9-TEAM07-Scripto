@@ -15,9 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Administração - Documentos", description = "Gerenciamento dos documentos pelos administradores")
 @RestController
@@ -42,5 +40,20 @@ public class AdminDocumentController {
     public ResponseEntity<Page<DocumentListDTO>> getAllDocuments(@ParameterObject @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         var documents = documentService.findAllDocuments(pageable);
         return ResponseEntity.ok(documents);
+    }
+
+    @Operation(summary = "Excluir documento", description = "Exclui um documento pelo ID. Restrito a ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Documento excluído com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Documento não encontrado"),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
+            @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores")
+    })
+    @SecurityRequirement(name = SecurityConfigurations.SECURITY)
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
+        documentService.deleteDocumentAsAdmin(id);
+        return ResponseEntity.noContent().build();
     }
 }

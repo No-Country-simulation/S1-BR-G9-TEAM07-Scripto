@@ -191,7 +191,7 @@ public class DocumentService {
     @Transactional
     public void deleteDocument(Long documentId, User user) {
         Document document = documentRepository.findByIdAndUser(documentId, user)
-                .orElseThrow(() -> new EntityNotFoundException("Documento não encontrado!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Documento não encontrado!"));
         documentRepository.delete(document);
     }
 
@@ -199,5 +199,12 @@ public class DocumentService {
     public Page<DocumentListDTO> findAllDocuments(Pageable pageable) {
         var documents = documentRepository.findAll(pageable);
         return documents.map(DocumentListDTO::new);
+    }
+
+    @Transactional
+    public void deleteDocumentAsAdmin(Long documentId) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Documento não encontrado!"));
+        documentRepository.delete(document);
     }
 }
