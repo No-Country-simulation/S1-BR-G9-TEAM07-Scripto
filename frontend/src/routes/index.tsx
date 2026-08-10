@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpenCheck, Compass, Layers3, PlayCircle, Search, Sparkles } from "lucide-react";
-import { AppLogo } from "@/components/AppLogo";
+import { ArrowRight, Compass, Layers3, Search, Sparkles } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
-import { AcanthusCorner, OrnamentDivider } from "@/components/ornaments/Acanthus";
+import { AcanthusCorner, OrnamentDivider, ScriptoWordmark } from "@/components/ornaments/Acanthus";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 import beatriz from "@/assets/members/beatriz.jpg";
 import daniel from "@/assets/members/daniel.jpeg";
 import davenir from "@/assets/members/davenir.png";
@@ -17,18 +17,31 @@ import oneLogo from "@/assets/sponsors/one.png";
 import oracleLogo from "@/assets/sponsors/oracle.svg";
 import noCountryLogo from "@/assets/sponsors/nocountry.png";
 import aluraLogo from "@/assets/sponsors/alura.svg";
+import aluraLogoDark from "@/assets/sponsors/alura.webp";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "SCRIPTO — Onde suas leituras se organizam" },
-      { name: "description", content: "Uma biblioteca inteligente para estudantes organizarem artigos, PDFs e anotações." },
+      { name: "description", content: "Uma biblioteca inteligente para estudantes organizarem artigos, textos e anotações." },
     ],
   }),
   component: LandingPage,
 });
 
 const fadeIn = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.55 } } };
+const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=4xq5QzNG-m8&list=RD4xq5QzNG-m8&start_radio=1&pp=ygUXYmFkIG9tZW5zIGR5aW5nIHRvIGxvdmWgBwE%3D";
+
+function youtubeEmbedUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    const id = parsed.hostname.includes("youtu.be") ? parsed.pathname.slice(1) : parsed.searchParams.get("v");
+    return id ? `https://www.youtube-nocookie.com/embed/${id}` : url;
+  } catch {
+    return url;
+  }
+}
+
 const team = [
   { name: "Beatriz França Gusmão", role: "Full Stack", photo: beatriz },
   { name: "Daniel Romulo Gomes", role: "Back-end", photo: daniel },
@@ -39,10 +52,10 @@ const team = [
   { name: "Vitor Augusto R. Genesio", role: "Back-end", photo: vitor },
 ];
 const sponsors = [
-  { name: "Oracle Next Education", logo: oneLogo },
-  { name: "Oracle", logo: oracleLogo },
-  { name: "NoCountry", logo: noCountryLogo },
-  { name: "Alura", logo: aluraLogo },
+  { name: "Oracle Next Education", logoLight: oneLogo, logoDark: oneLogo },
+  { name: "Oracle", logoLight: oracleLogo, logoDark: oracleLogo },
+  { name: "NoCountry", logoLight: noCountryLogo, logoDark: noCountryLogo },
+  { name: "Alura", logoLight: aluraLogo, logoDark: aluraLogoDark },
 ];
 
 function AnimatedSection({ id, children, className = "" }: { id?: string; children: React.ReactNode; className?: string }) {
@@ -55,6 +68,7 @@ function AnimatedSection({ id, children, className = "" }: { id?: string; childr
 
 function LandingPage() {
   const { t } = useI18n();
+  const { theme } = useTheme();
   const features = [
     { Icon: Layers3, title: t("landing.feature.classification.title"), body: t("landing.feature.classification.body") },
     { Icon: Search, title: t("landing.feature.search.title"), body: t("landing.feature.search.body") },
@@ -63,13 +77,16 @@ function LandingPage() {
   const steps = [t("landing.step.1"), t("landing.step.2"), t("landing.step.3")];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen bg-background text-foreground">
       <TopBar />
-      <main id="main-content">
+      <main
+        id="main-content"
+        className="relative z-10 min-h-screen bg-background text-foreground shadow-[0_100px_80px_0_var(--color-background)] transition-colors duration-300 md:mb-[83vh]"
+      >
         <section className="relative overflow-hidden border-b border-border/60">
           <AcanthusCorner className="pointer-events-none absolute left-0 top-10 h-40 w-40 text-dourado/25 sm:h-64 sm:w-64" />
           <AcanthusCorner className="pointer-events-none absolute right-0 top-10 h-40 w-40 rotate-90 text-dourado/25 sm:h-64 sm:w-64" />
-          <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl flex-col items-center justify-center px-4 py-20 text-center sm:py-28">
+          <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] max-w-5xl flex-col items-center justify-center px-4 py-20 text-center sm:py-28 ">
             <motion.p variants={fadeIn} initial="hidden" animate="show" className="inline-flex items-center gap-2 rounded-full border border-dourado/40 bg-dourado/5 px-3 py-1.5 text-xs font-medium text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-dourado" aria-hidden="true" /> {t("landing.badge")}
             </motion.p>
@@ -83,7 +100,7 @@ function LandingPage() {
               <Link to="/register"><Button size="lg" className="w-full bg-vinho text-vinho-foreground hover:bg-vinho/90 sm:w-auto">{t("landing.hero.primary")} <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></Button></Link>
               <a href="#features"><Button size="lg" variant="outline" className="w-full sm:w-auto">{t("landing.hero.secondary")}</Button></a>
             </motion.div>
-            <div className="mt-14 w-full max-w-3xl"><OrnamentDivider /></div>
+            <div className="mt-12 w-full max-w-3xl"><OrnamentDivider /></div>
           </div>
         </section>
 
@@ -94,7 +111,7 @@ function LandingPage() {
               <h2 className="mt-2 text-balance font-serif text-4xl sm:text-5xl">{t("landing.problem.title")}</h2>
               <p className="mt-5 leading-7 text-muted-foreground">{t("landing.problem.body")}</p>
             </div>
-            <blockquote className="relative overflow-hidden rounded-2xl border border-border bg-muted/35 p-8 font-serif text-3xl italic leading-tight text-muted-foreground">
+            <blockquote className="relative overflow-hidden rounded-2xl border border-border bg-muted/35 p-8 font-serif text-3xl italic leading-tight text-muted-foreground hover:-translate-y-2">
               <AcanthusCorner className="pointer-events-none absolute -right-3 -top-3 h-24 w-24 text-dourado/25" />
               “{t("landing.problem.quote")}”
             </blockquote>
@@ -106,7 +123,7 @@ function LandingPage() {
             <div className="order-2 rounded-2xl border border-border bg-card p-5 shadow-sm md:order-1 sm:p-7">
               <div className="space-y-3">
                 {steps.map((step, index) => (
-                  <div key={step} className="flex items-center gap-4 rounded-xl border border-border/70 bg-background p-4">
+                  <div key={step} className="flex items-center gap-4 rounded-xl border border-border/70 bg-background p-4 hover:-translate-y-1">
                     <span className="font-display text-2xl text-dourado">0{index + 1}</span>
                     <span className="text-sm leading-relaxed">{step}</span>
                   </div>
@@ -124,21 +141,29 @@ function LandingPage() {
         <AnimatedSection id="how">
           <div className="text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-dourado">{t("landing.how.eyebrow")}</p>
-            <h2 className="mt-2 font-serif text-4xl sm:text-5xl">{t("landing.how.title")}</h2>
+            <h2 className="mt-2 font-serif text-3xl sm:text-3xl">{t("landing.how.title")}</h2>
           </div>
-          <div className="mt-10 flex aspect-video max-h-[36rem] min-h-64 items-center justify-center rounded-2xl border border-border bg-gradient-to-br from-muted/60 to-background text-muted-foreground shadow-inner">
-            <div className="text-center"><PlayCircle className="mx-auto h-12 w-12 text-dourado" aria-hidden="true" /><p className="mt-3 font-serif text-xl">{t("landing.demo")}</p></div>
+          <div className="mx-auto mt-10 aspect-video w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+            <iframe
+              className="h-full w-full"
+              src={youtubeEmbedUrl(DEMO_VIDEO_URL)}
+              title={t("landing.demo")}
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
           </div>
         </AnimatedSection>
 
         <AnimatedSection id="features" className="border-y border-border/60 bg-muted/25">
           <div className="text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-dourado">{t("landing.features.eyebrow")}</p>
-            <h2 className="mt-2 font-serif text-4xl sm:text-5xl">{t("landing.features.title")}</h2>
+            <h2 className="mt-2 font-serif text-3xl sm:text-3xl">{t("landing.features.title")}</h2>
           </div>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             {features.map(({ Icon, title, body }) => (
-              <article key={title} className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+              <article key={title} className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:-translate-y-2 hover:shadow-lg">
                 <AcanthusCorner className="pointer-events-none absolute -right-2 -top-2 h-20 w-20 text-dourado/20" />
                 <div className="inline-flex rounded-xl bg-vinho/10 p-3 text-vinho"><Icon className="h-5 w-5" aria-hidden="true" /></div>
                 <h3 className="mt-5 font-serif text-2xl">{title}</h3>
@@ -152,11 +177,14 @@ function LandingPage() {
         <AnimatedSection id="team">
           <div className="text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-dourado">{t("landing.team.eyebrow")}</p>
-            <h2 className="mt-2 font-serif text-4xl sm:text-5xl">{t("landing.team.title")}</h2>
+            <h2 className="mt-2 font-serif text-3xl sm:text-3xl">{t("landing.team.title")}</h2>
           </div>
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-10 flex flex-wrap justify-center gap-4 sm:gap-5">
             {team.map((member) => (
-              <article key={member.name} className="rounded-2xl border border-border bg-card p-4 text-center shadow-sm sm:p-5">
+              <article
+                key={member.name}
+                className="w-[calc(50%_-_0.5rem)] max-w-[260px] rounded-2xl border border-border bg-card p-4 text-center shadow-sm sm:w-[calc(33.333%_-_0.875rem)] sm:p-5 lg:w-[calc(25%_-_0.9375rem)] hover:-translate-y-2"
+              >
                 <img src={member.photo} alt="" loading="lazy" className="mx-auto aspect-square w-24 rounded-full object-cover ring-4 ring-pessego/30 sm:w-28" />
                 <h3 className="mt-4 font-serif text-lg leading-tight">{member.name}</h3>
                 <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{member.role}</p>
@@ -165,31 +193,82 @@ function LandingPage() {
           </div>
         </AnimatedSection>
 
-        <AnimatedSection className="border-t border-border/60 bg-muted/25">
+        <AnimatedSection className="pb-16">
           <div className="text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-dourado">{t("landing.sponsors.eyebrow")}</p>
-            <h2 className="mt-2 font-serif text-4xl">{t("landing.sponsors.title")}</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-dourado">06 · Apoio</p>
+            <p className="mt-2 font-serif text-3xl sm:text-3xl">
+              {t("landing.sponsors.institutional")}
+            </p>
           </div>
-          <div className="mt-9 grid grid-cols-2 gap-4 md:grid-cols-4">
+
+          <div className="mt-10 flex flex-wrap justify-center gap-6">
             {sponsors.map((sponsor) => (
-              <div key={sponsor.name} className="flex min-h-28 items-center justify-center rounded-2xl border border-border bg-card p-5">
-                <img src={sponsor.logo} alt={sponsor.name} loading="lazy" className="max-h-14 max-w-full object-contain dark:brightness-0 dark:invert" />
+              <div
+                key={sponsor.name}
+                className="w-full max-w-[220px] rounded-xl border border-dashed border-bege bg-card p-6 text-center transition-all hover:border-dourado hover:shadow-md hover:-translate-y-2"
+              >
+                <div className="flex h-20 items-center justify-center">
+                  <img
+                    src={theme === "dark" ? sponsor.logoDark : sponsor.logoLight}
+                    alt={sponsor.name}
+                    loading="lazy"
+                    className="max-h-16 max-w-full object-contain"
+                  />
+                </div>
+                <p className="mt-4 font-serif text-base">{sponsor.name}</p>
               </div>
             ))}
           </div>
         </AnimatedSection>
       </main>
 
-      <footer className="border-t border-border bg-marrom text-pessego">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-[1fr_auto] sm:items-end">
-          <div><AppLogo /><p className="mt-3 max-w-md text-sm text-pessego/70">{t("landing.footer.tag")}</p></div>
-          <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm" aria-label="Legal">
-            <Link to="/terms" className="hover:text-white hover:underline">{t("nav.terms")}</Link>
-            <Link to="/privacity" className="hover:text-white hover:underline">{t("nav.privacy")}</Link>
-            <Link to="/login" className="hover:text-white hover:underline">{t("nav.login")}</Link>
-          </nav>
+      <footer className="relative z-0 min-h-screen overflow-hidden bg-background text-foreground transition-colors duration-300 md:fixed md:inset-x-0 md:bottom-0 md:h-[70vh] md:min-h-0">
+        <div className="mx-auto flex min-h-screen max-w-7xl flex-col justify-between border-t border-border px-6 py-16 text-foreground md:h-full md:min-h-0 md:px-16">
+          <div>
+            <ScriptoWordmark className="text-4xl text-primary md:text-6xl" />
+            <p className="mt-6 max-w-xl font-serif text-2xl leading-snug md:text-4xl">
+              {t("landing.footer.tag")}
+            </p>
+          </div>
+
+          <div className="mt-16 grid gap-10 sm:grid-cols-2 md:grid-cols-4">
+            <div>
+              <p className="mb-3 text-xs uppercase tracking-widest text-dourado">{t("landing.footer.product")}</p>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#features" className="transition-opacity hover:opacity-70">{t("nav.features")}</a></li>
+                <li><a href="#how" className="transition-opacity hover:opacity-70">{t("nav.how")}</a></li>
+                <li><Link to="/register" className="transition-opacity hover:opacity-70">{t("landing.footer.start")}</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="mb-3 text-xs uppercase tracking-widest text-dourado">{t("landing.footer.company")}</p>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#team" className="transition-opacity hover:opacity-70">{t("nav.team")}</a></li>
+                <li><Link to="/login" className="transition-opacity hover:opacity-70">{t("nav.login")}</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="mb-3 text-xs uppercase tracking-widest text-dourado">{t("landing.footer.legal")}</p>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/terms" className="transition-opacity hover:opacity-70">{t("nav.terms")}</Link></li>
+                <li><Link to="/privacity" className="transition-opacity hover:opacity-70">{t("nav.privacy")}</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="mb-3 text-xs uppercase tracking-widest text-dourado">{t("landing.footer.moderation")}</p>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/admin/login" className="transition-opacity hover:opacity-70">{t("landing.footer.admin")}</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 border-t border-border pt-6 text-xs text-foreground/70">
+            © {new Date().getFullYear()} SCRIPTO. {t("landing.footer.rights")}
+          </div>
         </div>
-        <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-pessego/60">© 2026 Scripto. {t("landing.footer.rights")}</div>
       </footer>
     </div>
   );

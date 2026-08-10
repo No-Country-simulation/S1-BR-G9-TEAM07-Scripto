@@ -84,9 +84,8 @@ function LoginPage() {
             aria-describedby={touched.password && errors.password ? "password-error" : undefined}
           />
         </FormField>
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="text-right text-xs">
           <Link to="/reset-password" className="font-medium text-vinho underline-offset-4 hover:underline">{t("auth.login.forgot")}</Link>
-          <span className="text-muted-foreground">{t("auth.login.suspended")} <Link to="/account-suspended" className="font-medium text-vinho underline-offset-4 hover:underline">{t("auth.login.reactivate")}</Link></span>
         </div>
         {error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
         <LoadingButton type="submit" loading={loading} loadingLabel={t("auth.login.loading")} disabled={!valid} className="w-full bg-vinho text-vinho-foreground hover:bg-vinho/90">

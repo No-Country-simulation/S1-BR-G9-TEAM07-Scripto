@@ -14,7 +14,7 @@ import { friendlyError } from "@/lib/errors";
 import { useI18n } from "@/lib/i18n";
 import type { Level } from "@/services/classification.service";
 import { deleteDocument, findDocumentById, findDocuments, updateDocumentVisibility, type DocumentListDTO, type DocumentResponseDTO, type Status } from "@/services/documents.service";
-import { summarizeDocument, type SummaryResponseDTO } from "@/services/summary.service";
+import { summarizeDocument } from "@/services/summary.service";
 
 export const Route = createFileRoute("/app/library")({ component: LibraryPage });
 
@@ -32,7 +32,6 @@ function LibraryPage() {
   const [sort, setSort] = useState<Sort>("newest");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<DocumentResponseDTO | null>(null);
-  const [summary, setSummary] = useState<SummaryResponseDTO | null>(null);
   const [summaryLoadingId, setSummaryLoadingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,12 +79,10 @@ function LibraryPage() {
     setSummaryLoadingId(documentId);
     setError(null);
     try {
-      const detail = await findDocumentById(documentId);
-      if (!detail.externalAiAllowed) {
-        toast.info(lang === "pt-BR" ? "Este documento não autorizou o uso de IA externa para um novo resumo." : "This document did not authorize external AI for a new summary.");
-        return;
-      }
-      setSummary(await summarizeDocument(documentId));
+      const generated = await summarizeDocument(documentId);
+      setDocuments((current) => current.map((document) => document.documentId === documentId ? { ...document, summary: generated.summary } : document));
+      setSelected((current) => current?.documentId === documentId ? { ...current, summary: generated.summary } : current);
+      toast.success(t("library.summaryReady"));
     } catch (currentError) {
       setError(friendlyError(currentError, t));
     } finally {
@@ -143,13 +140,13 @@ function LibraryPage() {
           </div>
           <Select value={category} onChange={setCategory} label={t("library.allCategories")} options={categories} />
           <Select value={tag} onChange={setTag} label={t("library.allTags")} options={tags} />
-          <select value={level} onChange={(event) => setLevel(event.target.value as Level | "")} aria-label={t("library.allLevels")} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <select value={level} onChange={(event) => setLevel(event.target.value as Level | "")} aria-label={t("library.allLevels")} className="min-h-10 rounded-md border border-input bg-field px-3 dark:bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <option value="">{t("library.allLevels")}</option><option value="BEGINNER">{t("library.level.beginner")}</option><option value="INTERMEDIATE">{t("library.level.intermediate")}</option><option value="ADVANCED">{t("library.level.advanced")}</option>
           </select>
-          <select value={status} onChange={(event) => setStatus(event.target.value as Status | "")} aria-label={t("library.allStatuses")} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <select value={status} onChange={(event) => setStatus(event.target.value as Status | "")} aria-label={t("library.allStatuses")} className="min-h-10 rounded-md border border-input bg-field px-3 dark:bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <option value="">{t("library.allStatuses")}</option><option value="PENDING">{t("library.status.pending")}</option><option value="PROCESSING">{t("library.status.processing")}</option><option value="PROCESSED">{t("library.status.processed")}</option>
           </select>
-          <select value={sort} onChange={(event) => setSort(event.target.value as Sort)} aria-label={lang === "pt-BR" ? "Ordenar" : "Sort"} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <select value={sort} onChange={(event) => setSort(event.target.value as Sort)} aria-label={lang === "pt-BR" ? "Ordenar" : "Sort"} className="min-h-10 rounded-md border border-input bg-field px-3 dark:bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <option value="newest">{t("library.sort.newest")}</option><option value="oldest">{t("library.sort.oldest")}</option><option value="title">{t("library.sort.title")}</option>
           </select>
         </div>
@@ -162,7 +159,7 @@ function LibraryPage() {
         {loading ? <LoadingState label={t("common.loading")} /> : visible.length === 0 ? (
           <EmptyState title={t("library.empty.title")} description={t("library.empty.body")} action={filtersActive ? <Button variant="outline" onClick={clearFilters}>{t("common.clearFilters")}</Button> : <Link to="/app"><Button className="bg-vinho text-vinho-foreground hover:bg-vinho/90">{t("common.newDocument")}</Button></Link>} />
         ) : (
-          <><div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{visible.map((document) => <DocCard key={document.documentId} document={document} onOpen={() => void openDocument(document.documentId)} onRequestSummary={document.status === "PROCESSED" ? () => void requestSummary(document.documentId) : undefined} summaryLoading={summaryLoadingId === document.documentId} />)}</div><Pagination page={page} pageCount={pageCount} onPageChange={setPage} /></>
+          <><div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{visible.map((document) => <DocCard key={document.documentId} document={document} onOpen={() => void openDocument(document.documentId)} onRequestSummary={document.status === "PROCESSED" && !document.summary ? () => void requestSummary(document.documentId) : undefined} summaryLoading={summaryLoadingId === document.documentId} />)}</div><Pagination page={page} pageCount={pageCount} onPageChange={setPage} /></>
         )}
       </div>
 
@@ -170,22 +167,20 @@ function LibraryPage() {
         <DialogContent className="max-h-[88vh] max-w-3xl overflow-y-auto">
           <DialogHeader><DialogTitle>{selected?.title}</DialogTitle><DialogDescription>{selected && `${selected.visibility === "PUBLIC" ? t("common.public") : t("common.private")} · ${new Date(selected.createdAt).toLocaleString(lang)}`}</DialogDescription></DialogHeader>
           {selected && <div className="space-y-6">
-            <dl className="grid gap-4 rounded-xl bg-muted/30 p-4 text-sm sm:grid-cols-2"><Data label="ID" value={selected.documentId} /><Data label="Status" value={documentStatusLabel(selected.status, t)} /><Data label={lang === "pt-BR" ? "Moderação" : "Moderation"} value={moderationStatusLabel(selected.moderationStatus, t)} /><Data label={lang === "pt-BR" ? "Uso interno autorizado" : "Internal training allowed"} value={selected.trainingUseAllowed ? t("common.yes") : t("common.no")} /></dl>
+            <dl className="grid gap-4 rounded-xl bg-muted/30 p-4 text-sm sm:grid-cols-2"><Data label="Status" value={documentStatusLabel(selected.status, t)} /><Data label={lang === "pt-BR" ? "Moderação" : "Moderation"} value={moderationStatusLabel(selected.moderationStatus, t)} /></dl>
             {selected.analysis && <section><h3 className="font-serif text-xl">{t("library.analysis")}</h3><div className="mt-3 flex flex-wrap gap-2"><span className="rounded-md bg-muted px-2 py-1 text-xs">{selected.analysis.category}</span><span className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">{levelLabel(selected.analysis.difficulty, t)}</span>{selected.analysis.tags.map((value) => <span key={value} className="rounded-full bg-pessego/50 px-2 py-1 text-xs text-marrom">#{value}</span>)}</div></section>}
+            {selected.status === "PROCESSED" && <section><h3 className="font-serif text-xl">{t("library.summary")}</h3><div className="mt-3 rounded-xl border border-border bg-muted/20 p-4">{selected.summary ? <p className="whitespace-pre-wrap text-sm leading-7">{selected.summary}</p> : <Button onClick={() => void requestSummary(selected.documentId)} disabled={summaryLoadingId === selected.documentId} className="bg-vinho text-vinho-foreground hover:bg-vinho/90"><Sparkles className="mr-2 h-4 w-4" />{summaryLoadingId === selected.documentId ? t("library.generatingSummary") : t("library.generateSummary")}</Button>}</div></section>}
             <section><h3 className="font-serif text-xl">{t("library.content")}</h3><div className="mt-3 whitespace-pre-wrap break-words rounded-xl border border-border bg-muted/20 p-4 text-sm leading-7">{selected.content}</div></section>
-            <div className="flex flex-wrap gap-2 border-t border-border pt-4"><Button variant="outline" onClick={() => void changeVisibility()}><Eye className="mr-2 h-4 w-4" />{t("library.changeVisibility")}</Button><Button variant="outline" onClick={() => void removeSelected()} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t("library.deleteDocument")}</Button>{selected.status === "PROCESSED" && <Button onClick={() => void requestSummary(selected.documentId)} disabled={summaryLoadingId === selected.documentId} className="bg-vinho text-vinho-foreground hover:bg-vinho/90"><Sparkles className="mr-2 h-4 w-4" />{t("library.generateSummary")}</Button>}</div>
+            <div className="flex flex-wrap gap-2 border-t border-border pt-4"><Button variant="outline" onClick={() => void changeVisibility()}><Eye className="mr-2 h-4 w-4" />{t("library.changeVisibility")}</Button><Button variant="outline" onClick={() => void removeSelected()} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t("library.deleteDocument")}</Button></div>
           </div>}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(summary)} onOpenChange={(open) => !open && setSummary(null)}>
-        <DialogContent><DialogHeader><DialogTitle>{t("library.summary")}</DialogTitle><DialogDescription>{summary && `${summary.provider} · ${summary.model}`}</DialogDescription></DialogHeader><p className="whitespace-pre-wrap text-sm leading-7">{summary?.summary}</p><p className="text-xs text-muted-foreground">{t("library.summaryRemaining")}: {summary?.remainingGenerationsToday}</p></DialogContent>
-      </Dialog>
     </div>
   );
 }
 
 function Select({ value, onChange, label, options }: { value: string; onChange: (value: string) => void; label: string; options: string[] }) {
-  return <select value={value} onChange={(event) => onChange(event.target.value)} aria-label={label} className="min-h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><option value="">{label}</option>{options.map((option) => <option key={option} value={option}>{option}</option>)}</select>;
+  return <select value={value} onChange={(event) => onChange(event.target.value)} aria-label={label} className="min-h-10 rounded-md border border-input bg-field px-3 dark:bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><option value="">{label}</option>{options.map((option) => <option key={option} value={option}>{option}</option>)}</select>;
 }
 function Data({ label, value }: { label: string; value: React.ReactNode }) { return <div><dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</dt><dd className="mt-1 font-medium">{value}</dd></div>; }
