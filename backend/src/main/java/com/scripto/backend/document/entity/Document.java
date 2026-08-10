@@ -5,6 +5,7 @@ import com.scripto.backend.document.domain.ModerationStatus;
 import com.scripto.backend.document.domain.Status;
 import com.scripto.backend.document.domain.Visibility;
 import com.scripto.backend.tag.entity.DocumentTag;
+import com.scripto.backend.summary.entity.DocumentSummary;
 import com.scripto.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -73,6 +74,8 @@ public class Document {
     @OneToOne(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private AIAnalyse aiAnalyse;
 
+    @OneToOne(mappedBy = "document", fetch = FetchType.LAZY)
+    private DocumentSummary summary;
 
     @CreationTimestamp
     @Column(name = "created_at", insertable = false, updatable = false)

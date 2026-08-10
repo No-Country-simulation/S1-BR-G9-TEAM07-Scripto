@@ -16,9 +16,14 @@ public record DocumentListDTO(
         String category,
         Level difficulty,
         List<String> tags,
+        String summary,
         LocalDateTime createdAt
 ) {
     public DocumentListDTO(Document document) {
+        this(document, document.getSummary() == null ? null : document.getSummary().getSummary());
+    }
+
+    public DocumentListDTO(Document document, String summary) {
         this(
                 document.getId(),
                 document.getTitle(),
@@ -29,6 +34,7 @@ public record DocumentListDTO(
                 document.getDocumentTags() == null
                         ? List.of()
                         : document.getDocumentTags().stream().map(documentTag -> documentTag.getTag().getName()).toList(),
+                summary,
                 document.getCreatedAt()
         );
     }

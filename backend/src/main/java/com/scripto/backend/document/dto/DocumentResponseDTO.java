@@ -17,6 +17,7 @@ public record DocumentResponseDTO(
         boolean externalAiAllowed,
         boolean trainingUseAllowed,
         AIAnalysisResultDTO analysis,
+        String summary,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

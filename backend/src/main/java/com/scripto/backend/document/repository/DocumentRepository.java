@@ -19,7 +19,7 @@ import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
-    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag"})
+    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag", "summary"})
     @Query("SELECT d FROM Document d WHERE d.id = :id")
     Optional<Document> findDetailedById(@Param("id") Long id);
 
@@ -31,6 +31,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             LEFT JOIN FETCH d.aiAnalyse a
             LEFT JOIN FETCH d.documentTags dt
             LEFT JOIN FETCH dt.tag t
+            LEFT JOIN FETCH d.summary s
             WHERE d.user = :user
                 AND (:category IS NULL OR a.category = :category)
                 AND (:tag IS NULL OR LOWER(t.normalizedName) = LOWER(:tag))
@@ -47,7 +48,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             @Param("status") Status status
     );
 
-    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag"})
+    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag", "summary"})
     @Query("""
             SELECT d FROM Document d
             WHERE d.id = :id
@@ -64,7 +65,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             @Param("status") Status status
     );
 
-    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag"})
+    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag", "summary"})
     @Query("""
             SELECT DISTINCT d
             FROM Document d
@@ -90,7 +91,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {"user", "aiAnalyse"})
+    @EntityGraph(attributePaths = {"user", "aiAnalyse", "summary"})
     @Query("""
             SELECT DISTINCT d
             FROM Document d
@@ -110,7 +111,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag"})
+    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag", "summary"})
     @Query("""
             SELECT DISTINCT d FROM Document d
             WHERE d.id IN :ids
@@ -153,7 +154,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag"})
+    @EntityGraph(attributePaths = {"user", "aiAnalyse", "documentTags", "documentTags.tag", "summary"})
     @Query("""
             SELECT DISTINCT d FROM Document d
             WHERE d.id IN :ids
@@ -176,7 +177,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     @EntityGraph(attributePaths = {
             "aiAnalyse",
             "documentTags",
-            "documentTags.tag"
+            "documentTags.tag",
+            "summary"
     })
     Page<Document> findAll(Pageable pageable);
     long countByUserAndStatus(User user, Status status);

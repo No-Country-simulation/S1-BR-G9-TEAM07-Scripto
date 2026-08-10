@@ -7,6 +7,7 @@ import com.scripto.backend.document.entity.Document;
 import com.scripto.backend.document.repository.DocumentRepository;
 import com.scripto.backend.document.service.DocumentService;
 import com.scripto.backend.recommendation.dto.RecommendationDTO;
+import com.scripto.backend.summary.service.SummaryLookupService;
 import com.scripto.backend.user.entity.User;
 import com.scripto.backend.vector.VectorStore;
 import com.scripto.backend.vector.domain.SimilarDocument;
@@ -24,11 +25,13 @@ public class RecommendationService {
     private final DocumentService documentService;
     private final DocumentRepository documentRepository;
     private final VectorStore vectorStore;
+    private final SummaryLookupService summaryLookupService;
 
-    public RecommendationService(DocumentService documentService, DocumentRepository documentRepository, VectorStore vectorStore) {
+    public RecommendationService(DocumentService documentService, DocumentRepository documentRepository, VectorStore vectorStore, SummaryLookupService summaryLookupService) {
         this.documentService = documentService;
         this.documentRepository = documentRepository;
         this.vectorStore = vectorStore;
+        this.summaryLookupService = summaryLookupService;
     }
 
     public List<RecommendationDTO> recommend(Long documentId, User user, int limit) {
@@ -46,11 +49,13 @@ public class RecommendationService {
 
         Set<String> sourceTags = normalizedTags(source);
         String sourceCategory = source.getAiAnalyse() == null ? null : source.getAiAnalyse().getCategory();
+        Map<Long, String> summaries = summaryLookupService.findTexts(documents.keySet());
 
         return similarities.stream()
                 .filter(similar -> documents.containsKey(similar.documentId()))
                 .map(similar -> toRecommendation(
                         documents.get(similar.documentId()),
+                        summaries.get(similar.documentId()),
                         similar.similarity(),
                         sourceCategory,
                         sourceTags
@@ -62,6 +67,7 @@ public class RecommendationService {
 
     private RecommendationDTO toRecommendation(
             Document candidate,
+            String summary,
             double semanticSimilarity,
             String sourceCategory,
             Set<String> sourceTags
@@ -76,8 +82,12 @@ public class RecommendationService {
         return new RecommendationDTO(
                 candidate.getId(),
                 candidate.getTitle(),
+                candidate.getUser().getFullName(),
                 category,
+                candidate.getAiAnalyse() == null ? null : candidate.getAiAnalyse().getDifficulty(),
                 tags,
+                summary,
+                candidate.getCreatedAt(),
                 score,
                 semanticSimilarity
         );
