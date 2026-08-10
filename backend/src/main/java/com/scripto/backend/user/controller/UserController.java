@@ -188,4 +188,19 @@ public class UserController {
         var user = userService.findUserById(id);
         return ResponseEntity.ok(user);
     }
+
+    @Operation(summary = "Excluir usuário", description = "Exclui um usuário pelo ID. Restrito a ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+            @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
+            @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores")
+    })
+    @SecurityRequirement(name = SecurityConfigurations.SECURITY)
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id, @AuthenticationPrincipal User authenticatedUser) {
+        userService.deleteUserByAdmin(id, authenticatedUser);
+        return ResponseEntity.noContent().build();
+    }
 }

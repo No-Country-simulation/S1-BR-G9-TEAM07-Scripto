@@ -145,4 +145,15 @@ public class UserService {
 
         user.reactivate();
     }
+
+    @Transactional
+    public void deleteUserByAdmin(Long userId, User authenticatedUser) {
+        if (userId.equals(authenticatedUser.getId())) {
+            throw new BusinessRuleException("Um administrador não pode excluir a própria conta.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
+        userRepository.delete(user);
+    }
 }
