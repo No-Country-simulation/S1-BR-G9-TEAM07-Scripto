@@ -27,7 +27,7 @@ class AuthorizationServiceTest {
     }
 
     @Test
-    void deveCarregarUsuarioPorEmail() {
+    void shouldLoadUserByEmail() {
         User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
         when(userRepository.findByEmail("joao@email.com")).thenReturn(user);
 
@@ -38,7 +38,7 @@ class AuthorizationServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoUsuarioNaoExistir() {
+    void shouldThrowExceptionWhenUserDoesNotExist() {
         when(userRepository.findByEmail("inexistente@email.com")).thenReturn(null);
 
         assertThrows(UsernameNotFoundException.class,
@@ -46,7 +46,7 @@ class AuthorizationServiceTest {
     }
 
     @Test
-    void deveNormalizarEmail() {
+    void shouldNormalizeEmail() {
         User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
         when(userRepository.findByEmail("joao@email.com")).thenReturn(user);
 

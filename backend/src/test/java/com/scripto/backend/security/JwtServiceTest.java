@@ -19,7 +19,7 @@ class JwtServiceTest {
     }
 
     @Test
-    void deveGerarTokenValido() {
+    void shouldGenerateValidToken() {
         User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
         String token = jwtService.generateToken(user);
         assertNotNull(token);
@@ -27,7 +27,7 @@ class JwtServiceTest {
     }
 
     @Test
-    void deveRetornarEmailAoValidarToken() {
+    void shouldReturnEmailWhenValidatingToken() {
         User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
         String token = jwtService.generateToken(user);
         String email = jwtService.validateToken(token);
@@ -35,7 +35,7 @@ class JwtServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoTokenForInvalido() {
+    void shouldThrowExceptionWhenTokenIsInvalid() {
         assertThrows(JWTVerificationException.class,
                 () -> jwtService.validateToken("token-invalido"));
     }

@@ -82,7 +82,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveEnviarDocumentoComSucesso() {
+    void shouldSendDocumentSuccessfully() {
 
         // Arrange
         DocumentRequestDTO request = new DocumentRequestDTO(
@@ -177,7 +177,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveMarcarDocumentoComoErroQuandoClassificacaoFalhar() {
+    void shouldMarkDocumentAsErrorWhenClassificationFails() {
 
         // Arrange
         User user = new User(
@@ -227,7 +227,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void devePersistirAnaliseQuandoClassificacaoForConcluida() {
+    void shouldPersistAnalysisWhenClassificationIsCompleted() {
 
         // Arrange
         User user = new User(
@@ -272,7 +272,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveRegistrarClassificacaoNoVectorStore() {
+    void shouldRecordClassificationInVectorStore() {
 
         // Arrange
         User user = new User(
@@ -324,7 +324,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveMarcarDocumentoComoProcessingAntesDaClassificacao() {
+    void shouldMarkDocumentAsProcessingBeforeClassification() {
 
         // Arrange
         User user = new User(
@@ -384,7 +384,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveImpedirAcessoAoDocumentoDeOutroUsuario() {
+    void shouldPreventAccessToDocumentOfAnotherUser() {
 
         // Arrange
         User donoDoDocumento = new User(
@@ -424,7 +424,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoDocumentoNaoForEncontrado() {
+    void shouldThrowExceptionWhenDocumentIsNotFound() {
 
         // Arrange
         User user = new User(
@@ -448,7 +448,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveEncontrarDocumentoPublicoPorId() {
+    void shouldFindPublicDocumentById() {
 
         // Arrange
         User user = new User(
@@ -496,7 +496,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoDocumentoPublicoNaoForEncontrado() {
+    void shouldThrowExceptionWhenPublicDocumentIsNotFound() {
 
         // Arrange
         when(documentRepository
@@ -524,7 +524,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveNormalizarTagAoBuscarDocumentos() {
+    void shouldNormalizeTagWhenFetchingDocuments() {
 
         // Arrange
         User user = new User(
@@ -575,7 +575,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveAtualizarVisibilidadeDoDocumento() {
+    void shouldUpdateDocumentVisibility() {
 
         // Arrange
         User user = new User(
@@ -627,7 +627,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveImpedirAlteracaoDeVisibilidadePorOutroUsuario() {
+    void shouldPreventVisibilityChangeByAnotherUser() {
 
         // Arrange
         User dono = new User(
@@ -679,7 +679,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void naoDevePermitirDocumentoBloqueadoComoPublico() {
+    void shouldNotAllowBlockedDocumentAsPublic() {
 
         // Arrange
         User user = new User(
@@ -724,7 +724,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void devePermitirDocumentoBloqueadoComoPrivado() {
+    void shouldAllowBlockedDocumentAsPrivat() {
 
         // Arrange
         User user = new User(
@@ -772,7 +772,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveListarDocumentosPublicosComFiltros() {
+    void shouldListPublicDocumentsWithFilters() {
 
         // Arrange
         User user = new User(
@@ -824,7 +824,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveListarDocumentosPublicosSemTag() {
+    void shouldListPublicDocumentsWithoutTag() {
 
         // Arrange
         User user = new User(
@@ -873,7 +873,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveExcluirDocumentoDoUsuario() {
+    void shouldDeleteUserDocument() {
 
         // Arrange
         User user = new User(
@@ -907,7 +907,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void naoDeveExcluirDocumentoNaoEncontrado() {
+    void shouldNotDeleteNotFoundDocument() {
 
         // Arrange
         User user = new User(
@@ -935,7 +935,7 @@ class DocumentServiceTest {
     }
 
     @Test
-    void deveBuscarTodosOsDocumentosComPaginacao() {
+    void shouldFindAllDocumentsWithPagination() {
 
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);

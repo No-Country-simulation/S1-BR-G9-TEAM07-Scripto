@@ -40,7 +40,7 @@ class SecurityFilterTest {
     }
 
     @Test
-    void devePermitirRequisicaoSemToken() throws Exception {
+    void shouldAllowRequestWithoutToken() throws Exception {
         when(request.getHeader("Authorization")).thenReturn(null);
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -51,7 +51,7 @@ class SecurityFilterTest {
     }
 
     @Test
-    void deveAutenticarUsuarioComTokenValido() throws Exception {
+    void shouldAuthenticateUserWithValidToken() throws Exception {
         User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
         user.setActive(true);
 
@@ -68,7 +68,7 @@ class SecurityFilterTest {
     }
 
     @Test
-    void naoDeveAutenticarUsuarioInativo() throws Exception {
+    void shouldNotAuthenticateInactiveUser() throws Exception {
         User user = new User("João da Silva", "joao@email.com", "12345678901", "senha");
         user.setActive(false);
 
@@ -83,7 +83,7 @@ class SecurityFilterTest {
     }
 
     @Test
-    void deveRetornar401QuandoTokenForInvalido() throws Exception {
+    void shouldReturn401WhenTokenIsInvalid() throws Exception {
         when(request.getHeader("Authorization")).thenReturn("Bearer token-invalido");
         when(jwtService.validateToken("token-invalido")).thenThrow(new JWTVerificationException("Invalid token"));
 
@@ -95,7 +95,7 @@ class SecurityFilterTest {
     }
 
     @Test
-    void deveIgnorarHeaderSemPrefixoBearer() throws Exception {
+    void shouldIgnoreHeaderWithoutBearerPrefix() throws Exception {
         when(request.getHeader("Authorization")).thenReturn("Basic dXNlcjpwYXNz");
 
         MockHttpServletResponse response = new MockHttpServletResponse();

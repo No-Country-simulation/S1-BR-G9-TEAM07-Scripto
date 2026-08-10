@@ -15,7 +15,7 @@ class LoginRateLimitServiceTest {
         loginRateLimitService = new LoginRateLimitService();
     }
     @Test
-    void deveRetornarMesmoBucketParaMesmoIP() {
+    void shouldReturnSameBucketForSameIp() {
 
         // Arrange
         Bucket bucket1 = loginRateLimitService.resolveBucket("127.0.0.1");
@@ -26,7 +26,7 @@ class LoginRateLimitServiceTest {
     }
 
     @Test
-    void deveRetornarBucketsDiferentesParaIPsDiferentes() {
+    void shouldReturnDifferentBucketsForDifferentIps() {
 
         // Arrange
         Bucket bucket1 = loginRateLimitService.resolveBucket("127.0.0.1");
@@ -37,7 +37,7 @@ class LoginRateLimitServiceTest {
     }
 
     @Test
-    void deveBloquearDepoisDeCincoTentativas() {
+    void shouldBlockAfterFiveAttempts() {
 
         // Arrange
         Bucket bucket = loginRateLimitService.resolveBucket("127.0.0.1");

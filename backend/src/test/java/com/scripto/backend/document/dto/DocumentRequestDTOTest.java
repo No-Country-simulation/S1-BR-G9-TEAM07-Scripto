@@ -18,7 +18,7 @@ class DocumentRequestDTOTest {
     }
 
     @Test
-    void deveAceitarDTOValido() {
+    void shouldAcceptValidDTO() {
 
         DocumentRequestDTO dto = new DocumentRequestDTO(
                 "Meu Documento",
@@ -31,7 +31,7 @@ class DocumentRequestDTOTest {
     }
 
     @Test
-    void deveRejeitarTituloVazio() {
+    void shouldRejectEmptyTitle() {
 
         DocumentRequestDTO dto = new DocumentRequestDTO(
                 "",
@@ -43,7 +43,7 @@ class DocumentRequestDTOTest {
         assertFalse(violations.isEmpty());
     }
     @Test
-    void deveRejeitarTituloMenorQueTresCaracteres() {
+    void shouldRejectTitleShorterThanThreeCharacters() {
 
         DocumentRequestDTO dto = new DocumentRequestDTO(
                 "AB",
@@ -55,7 +55,7 @@ class DocumentRequestDTOTest {
         assertFalse(violations.isEmpty());
     }
     @Test
-    void deveRejeitarConteudoVazio() {
+    void shouldRejectEmptyContent() {
 
         DocumentRequestDTO dto = new DocumentRequestDTO(
                 "Meu Documento",
@@ -67,7 +67,7 @@ class DocumentRequestDTOTest {
         assertFalse(violations.isEmpty());
     }
     @Test
-    void deveRejeitarConteudoMenorQueVinteCaracteres() {
+    void shouldRejectContentShorterThanTwentyCharacters() {
 
         DocumentRequestDTO dto = new DocumentRequestDTO(
                 "Meu Documento",
@@ -79,7 +79,7 @@ class DocumentRequestDTOTest {
         assertFalse(violations.isEmpty());
     }
     @Test
-    void deveRejeitarConteudoMaiorQueDezMilCaracteres() {
+    void shouldRejectContentExceedingTenThousandCharacters() {
 
         String conteudo = "A".repeat(10001);
 

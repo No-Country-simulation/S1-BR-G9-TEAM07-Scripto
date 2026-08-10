@@ -41,7 +41,7 @@ class LoginRateLimitFilterTest {
         MockitoAnnotations.openMocks(this);
     }
     @Test
-    void devePermitirLoginQuandoHouverTokens() throws Exception {
+    void shouldAllowLoginWhenTokensAreAvailable() throws Exception {
 
         // Arrange
         when(request.getRequestURI()).thenReturn("/user/login/");
@@ -62,7 +62,7 @@ class LoginRateLimitFilterTest {
     }
 
     @Test
-    void deveRetornar429QuandoLimiteForExcedido() throws Exception {
+    void shouldReturn429WhenRateLimitIsExceeded() throws Exception {
 
         // Arrange
         when(request.getRequestURI()).thenReturn("/user/login/");
@@ -89,7 +89,7 @@ class LoginRateLimitFilterTest {
     }
 
     @Test
-    void deveIgnorarRequisicoesQueNaoSejamLogin() throws Exception {
+    void shouldIgnoreNonLoginRequests() throws Exception {
 
         // Arrange
         when(request.getRequestURI()).thenReturn("/user/register/");

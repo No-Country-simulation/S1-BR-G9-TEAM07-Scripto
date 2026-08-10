@@ -49,7 +49,7 @@ class DocumentPersistenceServiceTest {
     }
 
     @Test
-    void deveCriarDocumentoComoPendente() {
+    void shouldCreateDocumentAsPending() {
 
         // Arrange
         DocumentRequestDTO request = new DocumentRequestDTO(
@@ -90,7 +90,7 @@ class DocumentPersistenceServiceTest {
     }
 
     @Test
-    void deveMarcarDocumentoComoProcessing() {
+    void shouldMarkDocumentAsProcessing() {
 
         // Arrange
         Document document = new Document(
@@ -121,7 +121,7 @@ class DocumentPersistenceServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoQuandoDocumentoNaoExistirAoMarcarComoProcessing() {
+    void shouldThrowExceptionWhenDocumentDoesNotExistWhenMarkingAsProcessing() {
 
         // Arrange
         when(documentRepository.findById(1L))
@@ -138,7 +138,7 @@ class DocumentPersistenceServiceTest {
     }
 
     @Test
-    void deveConcluirDocumentoComClassificacao() throws Exception {
+    void shouldCompleteDocumentWithClassification() throws Exception {
 
         // Arrange
         Document document = new Document(
@@ -206,7 +206,7 @@ class DocumentPersistenceServiceTest {
     }
 
     @Test
-    void deveAtualizarAnaliseExistenteAoConcluirDocumento() throws Exception {
+    void shouldUpdateExistingAnalysisWhenCompletingDocument() throws Exception {
 
         // Arrange
         Document document = new Document(
@@ -273,7 +273,7 @@ class DocumentPersistenceServiceTest {
     }
 
     @Test
-    void deveMarcarDocumentoComoError() {
+    void shouldMarkDocumentAsError() {
 
         // Arrange
         Document document = new Document(
@@ -298,7 +298,7 @@ class DocumentPersistenceServiceTest {
     }
 
     @Test
-    void naoDeveSalvarQuandoDocumentoNaoExistirAoMarcarComoError() {
+    void shouldNotSaveWhenDocumentDoesNotExistWhenMarkingAsError() {
 
         // Arrange
         when(documentRepository.findById(1L))
