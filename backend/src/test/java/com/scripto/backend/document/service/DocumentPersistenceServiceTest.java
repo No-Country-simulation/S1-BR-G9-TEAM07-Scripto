@@ -19,6 +19,8 @@ import org.mockito.MockitoAnnotations;
 import com.scripto.backend.document.domain.Visibility;
 import com.scripto.backend.aianalyse.domain.Level;
 import com.scripto.backend.classification.domain.ClassificationSource;
+import org.springframework.dao.DataIntegrityViolationException;
+
 import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
@@ -310,6 +312,26 @@ class DocumentPersistenceServiceTest {
         // Assert
         verify(documentRepository).findById(1L);
         verify(documentRepository, never()).save(any(Document.class));
+    }
+    @Test
+    void shouldRejectDuplicateDocumentTitleForSameUser() {
+        User user = new User();
+        user.setId(1L);
+
+        DocumentRequestDTO request = new DocumentRequestDTO(
+                "Meu Documento",
+                "Este conteúdo possui mais de vinte caracteres."
+        );
+
+        when(documentRepository.saveAndFlush(any(Document.class)))
+                .thenThrow(new DataIntegrityViolationException("Duplicate entry"));
+
+        assertThrows(
+                DataIntegrityViolationException.class,
+                () -> persistenceService.createPending(request, user)
+        );
+
+        verify(documentRepository).saveAndFlush(any(Document.class));
     }
 
 
