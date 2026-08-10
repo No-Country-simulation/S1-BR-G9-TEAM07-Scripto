@@ -18,6 +18,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Administração - Documentos", description = "Gerenciamento dos documentos pelos administradores")
+@SecurityRequirement(name = SecurityConfigurations.SECURITY)
+@PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequestMapping("/admin/document")
 public class AdminDocumentController {
@@ -34,8 +36,6 @@ public class AdminDocumentController {
             @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores")
     })
-    @SecurityRequirement(name = SecurityConfigurations.SECURITY)
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<Page<DocumentListDTO>> getAllDocuments(@ParameterObject @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         var documents = documentService.findAllDocuments(pageable);
@@ -49,8 +49,6 @@ public class AdminDocumentController {
             @ApiResponse(responseCode = "401", description = "Token ausente ou inválido"),
             @ApiResponse(responseCode = "403", description = "Acesso restrito a administradores")
     })
-    @SecurityRequirement(name = SecurityConfigurations.SECURITY)
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         documentService.deleteDocumentAsAdmin(id);

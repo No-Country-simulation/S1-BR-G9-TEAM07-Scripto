@@ -52,8 +52,11 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReportResponseDTO> listOpen() {
-        return reportRepository.findByStatusOrderByCreatedAtAsc(ReportStatus.OPEN).stream().map(this::toResponse).toList();
+    public List<ReportResponseDTO> listByStatus(ReportStatus status) {
+        return reportRepository.findByStatusOrderByCreatedAtAsc(status)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional
