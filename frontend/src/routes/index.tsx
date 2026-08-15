@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
 });
 
 const fadeIn = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.55 } } };
-const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=4xq5QzNG-m8&list=RD4xq5QzNG-m8&start_radio=1&pp=ygUXYmFkIG9tZW5zIGR5aW5nIHRvIGxvdmWgBwE%3D";
+const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=wY9lOAB5VM4";
 
 function youtubeEmbedUrl(url: string) {
   try {
