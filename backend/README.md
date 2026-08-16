@@ -166,5 +166,5 @@ Não renomeie nem edite migrations já aplicadas em bancos compartilhados.
 - [`docs/architecture/INTEGRATION.md`](docs/architecture/INTEGRATION.md)
 - [`docs/architecture/INTEGRATION_CHANGELOG.md`](docs/architecture/INTEGRATION_CHANGELOG.md)
 - [`docs/model/VALIDATION.md`](docs/model/VALIDATION.md)
-- [`docs/api/contrato-classificacao-ia.md`](docs/api/contrato-classificacao-ia.md)
+- [`docs/api/contrato-classificacao-ia.md`](docs/model/contrato-classificacao-ia.md)
 - [`docs/MERGE_REPORT.md`](docs/MERGE_REPORT.md)
