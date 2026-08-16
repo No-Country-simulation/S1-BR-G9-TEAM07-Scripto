@@ -51,6 +51,10 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/user/reactivate").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/user/suspended/password").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/user/suspended/password/").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/password-reset/verify").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/password-reset/verify/").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/password-reset/confirm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/password-reset/confirm/").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
