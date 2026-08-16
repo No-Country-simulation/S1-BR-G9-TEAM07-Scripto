@@ -33,6 +33,18 @@ export type SuspendedPasswordChangeDTO = {
   confirmNewPassword: string;
 };
 
+export type PasswordResetVerificationDTO = {
+  cpf: string;
+  email: string;
+};
+
+export type PasswordResetDTO = {
+  cpf: string;
+  email: string;
+  newPassword: string;
+  confirmNewPassword: string;
+};
+
 async function authenticate(request: LoginDTO): Promise<TokenJWTDTO> {
   return apiRequest<TokenJWTDTO>({ method: "POST", url: "/user/login", data: request });
 }
@@ -99,6 +111,21 @@ export async function reactivateAccount(request: UserReactivateAccountDTO): Prom
 
 export async function changeSuspendedPassword(request: SuspendedPasswordChangeDTO): Promise<void> {
   await apiRequest<void>({ method: "PATCH", url: "/user/suspended/password", data: {
+    ...request,
+    cpf: request.cpf.replace(/\D/g, ""),
+    email: request.email.trim().toLowerCase(),
+  } });
+}
+
+export async function verifyResetIdentity(request: PasswordResetVerificationDTO): Promise<void> {
+  await apiRequest<void>({ method: "POST", url: "/user/password-reset/verify", data: {
+    cpf: request.cpf.replace(/\D/g, ""),
+    email: request.email.trim().toLowerCase(),
+  } });
+}
+
+export async function resetPassword(request: PasswordResetDTO): Promise<void> {
+  await apiRequest<void>({ method: "POST", url: "/user/password-reset/confirm", data: {
     ...request,
     cpf: request.cpf.replace(/\D/g, ""),
     email: request.email.trim().toLowerCase(),

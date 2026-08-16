@@ -39,6 +39,8 @@ const PUBLIC_ROUTES = new Set([
   "/user/register",
   "/user/reactivate",
   "/user/suspended/password",
+  "/user/password-reset/verify",
+  "/user/password-reset/confirm",
 ]);
 
 function normalizeRequestPath(url?: string): string {
