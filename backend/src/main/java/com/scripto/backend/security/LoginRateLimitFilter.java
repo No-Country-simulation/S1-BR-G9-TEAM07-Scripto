@@ -63,7 +63,9 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
     private boolean isCredentialVerificationRequest(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String normalized = uri == null ? "" : uri.replaceFirst("/+$", "");
-        if ("/user/login".equals(normalized) || "/user/reactivate".equals(normalized)) {
+        if ("/user/login".equals(normalized) || "/user/reactivate".equals(normalized)
+                || "/user/password-reset/verify".equals(normalized)
+                || "/user/password-reset/confirm".equals(normalized)) {
             return "POST".equalsIgnoreCase(request.getMethod());
         }
         return "/user/suspended/password".equals(normalized)

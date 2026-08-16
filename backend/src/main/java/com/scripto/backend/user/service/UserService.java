@@ -8,6 +8,8 @@ import com.scripto.backend.exception.AccountPendingReactivationException;
 import com.scripto.backend.exception.BusinessRuleException;
 import com.scripto.backend.exception.ResourceNotFoundException;
 import com.scripto.backend.security.JwtService;
+import com.scripto.backend.user.dto.PasswordResetDTO;
+import com.scripto.backend.user.dto.PasswordResetVerificationDTO;
 import com.scripto.backend.user.dto.SuspendedPasswordChangeDTO;
 import com.scripto.backend.user.dto.UserPasswordChangeDTO;
 import com.scripto.backend.user.dto.UserProfileUpdateDTO;
@@ -120,6 +122,39 @@ public class UserService {
 
         user.updatePassword(passwordEncoder.encode(dto.newPassword()));
         userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public void verifyPasswordResetIdentity(PasswordResetVerificationDTO dto) {
+        User user = userRepository.findOptionalByEmail(dto.email())
+                .orElseThrow(() -> new BadCredentialsException("Credenciais inválidas."));
+        validatePasswordResetEligibility(user, dto.cpf());
+    }
+
+    @Transactional
+    public void resetPassword(PasswordResetDTO dto) {
+        validatePasswordConfirmation(dto.newPassword(), dto.confirmNewPassword());
+
+        User user = userRepository.findOptionalByEmail(dto.email())
+                .orElseThrow(() -> new BadCredentialsException("Credenciais inválidas."));
+        validatePasswordResetEligibility(user, dto.cpf());
+
+        user.updatePassword(passwordEncoder.encode(dto.newPassword()));
+        user.setFailedLoginAttempts(0);
+        userRepository.save(user);
+    }
+
+    private void validatePasswordResetEligibility(User user, String cpf) {
+        // Erro genérico: não revela se o e-mail existe ou se apenas o CPF não confere.
+        if (!matchesCpf(cpf, user)) {
+            throw new BadCredentialsException("Credenciais inválidas.");
+        }
+        if (Boolean.TRUE.equals(user.getBanned())) {
+            throw new AccountBannedException("A conta está bloqueada administrativamente.");
+        }
+        if (user.isPendingDeletion() && !user.canBeReactivated()) {
+            throw new AccountDeletionExpiredException("O prazo de 30 dias para recuperação da conta expirou.");
+        }
     }
 
     private void validatePasswordConfirmation(String password, String confirmation) {

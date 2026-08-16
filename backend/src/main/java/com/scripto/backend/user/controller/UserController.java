@@ -5,6 +5,8 @@ import com.scripto.backend.auth.dto.TokenJWTDTO;
 import com.scripto.backend.auth.dto.UserRegisterDTO;
 import com.scripto.backend.config.SecurityConfigurations;
 import com.scripto.backend.exception.BusinessRuleException;
+import com.scripto.backend.user.dto.PasswordResetDTO;
+import com.scripto.backend.user.dto.PasswordResetVerificationDTO;
 import com.scripto.backend.user.dto.SuspendedPasswordChangeDTO;
 import com.scripto.backend.user.dto.UserPasswordChangeDTO;
 import com.scripto.backend.user.dto.UserProfileUpdateDTO;
@@ -116,6 +118,38 @@ public class UserController {
     @PatchMapping("/suspended/password")
     public ResponseEntity<Void> changeSuspendedPassword(@RequestBody @Valid SuspendedPasswordChangeDTO dto) {
         userService.changeSuspendedPassword(dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Tag(name = "Autenticação")
+    @Operation(summary = "Verificar identidade para redefinição de senha", description = "Confirma CPF e e-mail antes de permitir a redefinição de senha. Não revela se a conta existe.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Identidade confirmada"),
+            @ApiResponse(responseCode = "401", description = "CPF ou e-mail inválidos"),
+            @ApiResponse(responseCode = "410", description = "Prazo de recuperação expirado"),
+            @ApiResponse(responseCode = "422", description = "Campos inválidos"),
+            @ApiResponse(responseCode = "423", description = "Conta banida administrativamente"),
+            @ApiResponse(responseCode = "429", description = "Muitas tentativas de autenticação")
+    })
+    @PostMapping("/password-reset/verify")
+    public ResponseEntity<Void> verifyPasswordResetIdentity(@RequestBody @Valid PasswordResetVerificationDTO dto) {
+        userService.verifyPasswordResetIdentity(dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Tag(name = "Autenticação")
+    @Operation(summary = "Redefinir senha", description = "Define uma nova senha após confirmação de CPF e e-mail.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Senha redefinida com sucesso"),
+            @ApiResponse(responseCode = "401", description = "CPF ou e-mail inválidos"),
+            @ApiResponse(responseCode = "410", description = "Prazo de recuperação expirado"),
+            @ApiResponse(responseCode = "422", description = "Campos inválidos ou nova senha fora das regras"),
+            @ApiResponse(responseCode = "423", description = "Conta banida administrativamente"),
+            @ApiResponse(responseCode = "429", description = "Muitas tentativas de autenticação")
+    })
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid PasswordResetDTO dto) {
+        userService.resetPassword(dto);
         return ResponseEntity.noContent().build();
     }
 

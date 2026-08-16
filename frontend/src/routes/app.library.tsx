@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, Filter, RefreshCw, Search, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, Eye, Filter, RefreshCw, Search, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DocCard } from "@/components/common/DocCard";
 import { EmptyState, ErrorState, LoadingState } from "@/components/StatusState";
 import { PageHeader } from "@/components/PageHeader";
 import { Pagination } from "@/components/Pagination";
+import { LoadingButton } from "@/components/LoadingButton";
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { documentStatusLabel, levelLabel, moderationStatusLabel } from "@/lib/display";
@@ -35,6 +37,9 @@ function LibraryPage() {
   const [summaryLoadingId, setSummaryLoadingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -107,16 +112,20 @@ function LibraryPage() {
 
   async function removeSelected() {
     if (!selected) return;
-    const confirmed = window.confirm(lang === "pt-BR" ? "Excluir este documento permanentemente da sua biblioteca?" : "Permanently delete this document from your library?");
-    if (!confirmed) return;
-    setError(null);
+    setDeleting(true);
+    setDeleteError(null);
     try {
       await deleteDocument(selected.documentId);
+      setDeleteOpen(false);
       setSelected(null);
       await load();
       toast.success(lang === "pt-BR" ? "Documento excluído." : "Document deleted.");
     } catch (currentError) {
-      setError(friendlyError(currentError, t));
+      const message = friendlyError(currentError, t);
+      setDeleteError(message);
+      setError(message);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -171,10 +180,26 @@ function LibraryPage() {
             {selected.analysis && <section><h3 className="font-serif text-xl">{t("library.analysis")}</h3><div className="mt-3 flex flex-wrap gap-2"><span className="rounded-md bg-muted px-2 py-1 text-xs">{selected.analysis.category}</span><span className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">{levelLabel(selected.analysis.difficulty, t)}</span>{selected.analysis.tags.map((value) => <span key={value} className="rounded-full bg-pessego/50 px-2 py-1 text-xs text-marrom">#{value}</span>)}</div></section>}
             {selected.status === "PROCESSED" && <section><h3 className="font-serif text-xl">{t("library.summary")}</h3><div className="mt-3 rounded-xl border border-border bg-muted/20 p-4">{selected.summary ? <p className="whitespace-pre-wrap text-sm leading-7">{selected.summary}</p> : <Button onClick={() => void requestSummary(selected.documentId)} disabled={summaryLoadingId === selected.documentId} className="bg-vinho text-vinho-foreground hover:bg-vinho/90"><Sparkles className="mr-2 h-4 w-4" />{summaryLoadingId === selected.documentId ? t("library.generatingSummary") : t("library.generateSummary")}</Button>}</div></section>}
             <section><h3 className="font-serif text-xl">{t("library.content")}</h3><div className="mt-3 whitespace-pre-wrap break-words rounded-xl border border-border bg-muted/20 p-4 text-sm leading-7">{selected.content}</div></section>
-            <div className="flex flex-wrap gap-2 border-t border-border pt-4"><Button variant="outline" onClick={() => void changeVisibility()}><Eye className="mr-2 h-4 w-4" />{t("library.changeVisibility")}</Button><Button variant="outline" onClick={() => void removeSelected()} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t("library.deleteDocument")}</Button></div>
+            <div className="flex flex-wrap gap-2 border-t border-border pt-4"><Button variant="outline" onClick={() => void changeVisibility()}><Eye className="mr-2 h-4 w-4" />{t("library.changeVisibility")}</Button><Button variant="outline" onClick={() => { setDeleteError(null); setDeleteOpen(true); }} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t("library.deleteDocument")}</Button></div>
           </div>}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => { if (!open && !deleting) setDeleteOpen(false); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 sm:mx-0"><AlertTriangle className="h-6 w-6 text-destructive" aria-hidden="true" /></div>
+            <AlertDialogTitle>{t("library.deleteConfirm.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("library.deleteConfirm.body")}</AlertDialogDescription>
+            {selected && <p className="break-words rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm font-medium text-foreground">“{selected.title}”</p>}
+            {deleteError && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{deleteError}</p>}
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>{t("common.cancel")}</AlertDialogCancel>
+            <LoadingButton loading={deleting} loadingLabel={t("library.deleting")} onClick={() => void removeSelected()} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90"><Trash2 className="mr-2 h-4 w-4" />{t("library.deleteConfirm.confirm")}</LoadingButton>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );

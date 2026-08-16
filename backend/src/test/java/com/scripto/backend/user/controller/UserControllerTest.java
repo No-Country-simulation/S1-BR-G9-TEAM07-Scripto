@@ -4,6 +4,8 @@ import com.scripto.backend.auth.dto.LoginDTO;
 import com.scripto.backend.auth.dto.TokenJWTDTO;
 import com.scripto.backend.auth.dto.UserRegisterDTO;
 import com.scripto.backend.exception.BusinessRuleException;
+import com.scripto.backend.user.dto.PasswordResetDTO;
+import com.scripto.backend.user.dto.PasswordResetVerificationDTO;
 import com.scripto.backend.user.dto.UserPasswordChangeDTO;
 import com.scripto.backend.user.dto.UserProfileUpdateDTO;
 import com.scripto.backend.user.dto.UserReactivateAccountDTO;
@@ -91,5 +93,21 @@ class UserControllerTest {
         var response = userController.reactivateAccount(dto);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(userService).reactivateAccount(dto);
+    }
+
+    @Test
+    void deveVerificarIdentidadeParaRedefinicaoDeSenha() {
+        PasswordResetVerificationDTO dto = new PasswordResetVerificationDTO("123.456.789-01", "joao@email.com");
+        var response = userController.verifyPasswordResetIdentity(dto);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(userService).verifyPasswordResetIdentity(dto);
+    }
+
+    @Test
+    void deveRedefinirSenha() {
+        PasswordResetDTO dto = new PasswordResetDTO("123.456.789-01", "joao@email.com", "Senha@123", "Senha@123");
+        var response = userController.resetPassword(dto);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(userService).resetPassword(dto);
     }
 }
