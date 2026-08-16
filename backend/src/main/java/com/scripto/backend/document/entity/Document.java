@@ -74,7 +74,7 @@ public class Document {
     @OneToOne(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private AIAnalyse aiAnalyse;
 
-    @OneToOne(mappedBy = "document", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private DocumentSummary summary;
 
     @CreationTimestamp
